@@ -39,11 +39,19 @@ export class EmailService {
       cc: data.cc || null,
       bcc: data.bcc || null,
       content: data.content,
-      direction: EmailDirection.OUTGOING,
+      direction: data.direction || EmailDirection.OUTGOING,
       isRead: false,
       isImportant: false,
     };
 
     return await this.emailRepository.create(emailData);
+  };
+
+  getAllEmails = async (): Promise<Email[]> => {
+    return await this.emailRepository.findAll();
+  };
+
+  searchEmails = async (query: string): Promise<Email[]> => {
+    return await this.emailRepository.search(query);
   };
 }

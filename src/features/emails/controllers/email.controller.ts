@@ -28,18 +28,11 @@ export class EmailController {
 
       const email = await this.emailService.getEmailById(emailId);
 
-      return NextResponse.json(
-        {
-          success: true,
-          data: email,
-        },
-        { status: 200 }
-      );
+      return NextResponse.json(email, { status: 200 });
     } catch (error) {
       if (error instanceof Error && error.message === "Email not Found") {
         return NextResponse.json(
           {
-            success: false,
             error: error.message,
           },
           { status: 404 }
@@ -48,7 +41,6 @@ export class EmailController {
 
       return NextResponse.json(
         {
-          success: false,
           error:
             error instanceof Error ? error.message : "Internal Server Error",
         },
@@ -68,12 +60,12 @@ export class EmailController {
         cc: body.cc,
         bcc: body.bcc,
         threadId: body.threadId,
+        direction: body.direction,
       };
 
       if (!emailData.subject || !emailData.to || !emailData.content) {
         return NextResponse.json(
           {
-            success: false,
             error: "Subject, to, and content are required",
           },
           { status: 400 }
@@ -83,7 +75,6 @@ export class EmailController {
       if (!emailData.from) {
         return NextResponse.json(
           {
-            success: false,
             error: "From is required",
           },
           { status: 400 }
@@ -92,13 +83,7 @@ export class EmailController {
 
       const email = await this.emailService.createEmail(emailData);
 
-      return NextResponse.json(
-        {
-          success: true,
-          data: email,
-        },
-        { status: 200 }
-      );
+      return NextResponse.json(email, { status: 200 });
     } catch (error) {
       if (
         error instanceof Error &&
@@ -108,7 +93,6 @@ export class EmailController {
       ) {
         return NextResponse.json(
           {
-            success: false,
             error: error.message,
           },
           { status: 400 }
@@ -117,7 +101,31 @@ export class EmailController {
 
       return NextResponse.json(
         {
-          success: false,
+          error:
+            error instanceof Error ? error.message : "Internal Server Error",
+        },
+        { status: 500 }
+      );
+    }
+  };
+
+  findAll = async (request: NextRequest): Promise<NextResponse> => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const search = searchParams.get("search");
+
+      let emails;
+
+      if (search && search.trim()) {
+        emails = await this.emailService.searchEmails(search.trim());
+      } else {
+        emails = await this.emailService.getAllEmails();
+      }
+
+      return NextResponse.json(emails, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        {
           error:
             error instanceof Error ? error.message : "Internal Server Error",
         },

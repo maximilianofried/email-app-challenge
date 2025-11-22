@@ -39,7 +39,7 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to fetch email');
       }
       const data = await response.json();
-      setSelectedEmail(data.data);
+      setSelectedEmail(data);
     } catch (error) {
       console.error('Error fetching email:', error);
       setSelectedEmail(null);

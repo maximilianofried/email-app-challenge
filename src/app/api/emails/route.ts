@@ -6,6 +6,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   return await emailController.create(request);
 }
 
-export async function GET(req: NextRequest): Promise<Response> {
-  return Response.json({ status: 'error' }, { status: 400 });
+export async function GET(request: NextRequest): Promise<Response> {
+  const emailController = new EmailController();
+  return await emailController.findAll(request);
 }
