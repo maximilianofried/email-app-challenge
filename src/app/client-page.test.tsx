@@ -5,7 +5,26 @@ import { emails } from '@/lib/schema';
 import { db } from '@/lib/database';
 import { desc } from 'drizzle-orm';
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    refresh: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+}));
+
 describe('Home Page Client', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   test('Shows the email list in the inbox', async () => {
     const emailList = await db.select().from(emails).orderBy((email) => desc(email.createdAt));
     const ui = <ClientPage emails={emailList} />;
@@ -36,6 +55,14 @@ describe('Home Page Client', () => {
 
   test('Displays full email content when clicking on an email', async () => {
     const emailList = await db.select().from(emails).orderBy((email) => desc(email.createdAt));
+    const selectedEmail = threads[0];
+    const threadEmails = emailList.filter(e => e.threadId === selectedEmail.threadId);
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ email: selectedEmail, thread: threadEmails }),
+    });
+
     const ui = <ClientPage emails={emailList} />;
     render(ui);
 
@@ -47,18 +74,25 @@ describe('Home Page Client', () => {
       fireEvent.click(emailCard);
     });
 
+    await screen.findByText(threads[0].content || '');
     expect(screen.getByText(threads[0].content || '')).toBeInTheDocument();
   });
 
   test('The search feature works as expected', async () => {
     const emailList = await db.select().from(emails).orderBy((email) => desc(email.createdAt));
+    const searchTerm = threads[0].subject;
+    const matchingEmails = emailList.filter(email => email.subject.includes(searchTerm));
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => matchingEmails,
+    });
+
     const ui = <ClientPage emails={emailList} />;
     render(ui);
 
     // Wait for the email list to load first
     await screen.findByTestId('email-list');
-
-    const searchTerm = threads[0].subject;
 
     const searchInput = screen.getByPlaceholderText('Search emails...');
     await act(async () => {
@@ -69,10 +103,6 @@ describe('Home Page Client', () => {
     await new Promise((r) => setTimeout(r, 1_000));
 
     const matchingThreads = threads.filter(thread => thread.subject.includes(searchTerm));
-    // const nonMatchingThreads = threads.filter(thread => !thread.subject.includes(searchTerm));
-
-    const matchingEmails = emailList.filter(email => email.subject.includes(searchTerm));
-    // const nonMatchingEmails = emailList.filter(email => !email.subject.includes(searchTerm));
 
     expect(screen.getAllByText(searchTerm).length).toBeGreaterThan(0);
 
@@ -84,13 +114,19 @@ describe('Home Page Client', () => {
 
   test('The search feature is debounced and works as expected', async () => {
     const emailList = await db.select().from(emails).orderBy((email) => desc(email.createdAt));
+    const searchTerm = threads[0].subject;
+    const matchingEmails = emailList.filter(email => email.subject.includes(searchTerm));
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => matchingEmails,
+    });
+
     const ui = <ClientPage emails={emailList} />;
     render(ui);
 
     // Wait for the email list to load first
     await screen.findByTestId('email-list');
-
-    const searchTerm = threads[0].subject;
 
     const searchInput = screen.getByPlaceholderText('Search emails...');
     await act(async () => {
@@ -104,10 +140,6 @@ describe('Home Page Client', () => {
     await new Promise((r) => setTimeout(r, 1_000));
 
     const matchingThreads = threads.filter(thread => thread.subject.includes(searchTerm));
-    // const nonMatchingThreads = threads.filter(thread => !thread.subject.includes(searchTerm));
-
-    const matchingEmails = emailList.filter(email => email.subject.includes(searchTerm));
-    // const nonMatchingEmails = emailList.filter(email => !email.subject.includes(searchTerm));
 
     // The nr of elements displayed should be between matchingThreads.length and matchingEmails.length
     displayedEmails = screen.getAllByTestId(/email-card-/);

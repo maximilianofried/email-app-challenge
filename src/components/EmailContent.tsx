@@ -20,7 +20,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
   const selectedEmailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (selectedEmailId && selectedEmailRef.current) {
+    if (selectedEmailRef.current) {
       selectedEmailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [selectedEmailId, threadEmails]);
