@@ -34,7 +34,10 @@ export default function ClientPage(props: ClientPageProps) {
   const importantCount = displayedEmails.filter(email => email.isImportant).length;
 
   const fetchEmailsByFilter = useCallback(async (filter: FilterType, searchTerm?: string) => {
-    setIsSearching(true);
+    // Only show searching state for search queries, not filter changes
+    if (searchTerm && searchTerm.trim()) {
+      setIsSearching(true);
+    }
     try {
       let url = '/api/emails?';
       
@@ -297,7 +300,7 @@ export default function ClientPage(props: ClientPageProps) {
           overflow: 'auto',
           p: 1,
         }} data-testid="email-list">
-          {isSearching ? (
+          {isSearching && displayedEmails.length === 0 ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
               <Typography color="text.secondary">Searching...</Typography>
             </Box>
