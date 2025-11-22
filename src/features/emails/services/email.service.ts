@@ -112,6 +112,16 @@ export class EmailService {
     await this.emailRepository.markThreadAsRead(threadId);
   };
 
+  toggleImportant = async (id: number, isImportant: boolean): Promise<Email> => {
+    const email = await this.emailRepository.findById(id);
+
+    if (!email) {
+      throw new Error("Email not Found");
+    }
+
+    return await this.emailRepository.update(id, { isImportant });
+  };
+
   deleteEmail = async (id: number): Promise<void> => {
     const email = await this.emailRepository.findById(id);
 

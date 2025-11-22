@@ -239,6 +239,50 @@ export default function ClientPage(props: ClientPageProps) {
     }
   };
 
+  const handleToggleImportant = async (emailId: number, isImportant: boolean) => {
+    try {
+      const response = await fetch(`/api/emails/${emailId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isImportant }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle important status');
+      }
+
+      const updatedEmail = await response.json();
+
+      // If we're in the important view and unmarking as important, refresh the list
+      if (activeFilter === 'important' && !isImportant) {
+        fetchEmailsByFilter(activeFilter);
+      } else {
+        // Update displayed emails list
+        setDisplayedEmails(prevEmails =>
+          prevEmails.map(email =>
+            email.id === emailId ? { ...email, isImportant } : email
+          )
+        );
+      }
+
+      // Update selected email if it's the one being toggled
+      if (selectedEmailId === emailId) {
+        setSelectedEmail(prevEmail => prevEmail ? { ...prevEmail, isImportant } : null);
+      }
+
+      // Update thread emails if the email is in the thread view
+      setThreadEmails(prevThread =>
+        prevThread.map(email =>
+          email.id === emailId ? { ...email, isImportant } : email
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling important status:', error);
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* Left Panel - Email List */}
@@ -312,6 +356,7 @@ export default function ClientPage(props: ClientPageProps) {
                   email={email}
                   onClick={() => handleEmailClick(email.id)}
                   onDelete={handleDeleteEmail}
+                  onToggleImportant={handleToggleImportant}
                   isInTrash={activeFilter === 'trash'}
                 />
               ))}
@@ -338,6 +383,7 @@ export default function ClientPage(props: ClientPageProps) {
             threadEmails={threadEmails}
             selectedEmailId={selectedEmailId}
             onDelete={handleDeleteSingleEmail}
+            onToggleImportant={handleToggleImportant}
             isInTrash={activeFilter === 'trash'}
           />
         ) : (

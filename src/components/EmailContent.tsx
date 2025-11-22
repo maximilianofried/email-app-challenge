@@ -9,7 +9,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { Star, Delete } from "@mui/icons-material";
+import { Star, StarBorder, Delete } from "@mui/icons-material";
 import { Email } from "@/lib/schema";
 
 interface EmailContentProps {
@@ -17,10 +17,11 @@ interface EmailContentProps {
   threadEmails?: Email[];
   selectedEmailId?: number | null;
   onDelete?: (emailId: number) => void;
+  onToggleImportant?: (emailId: number, isImportant: boolean) => void;
   isInTrash?: boolean;
 }
 
-const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], selectedEmailId, onDelete, isInTrash = false }) => {
+const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], selectedEmailId, onDelete, onToggleImportant, isInTrash = false }) => {
   const selectedEmailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,8 +92,30 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Typography variant="caption" color="text.secondary">
-                  {formatTime(threadEmail.createdAt)}
+                  {formatDate(threadEmail.createdAt)}
                 </Typography>
+                {onToggleImportant && (
+                  <Tooltip title={threadEmail.isImportant ? "Mark as not important" : "Mark as important"}>
+                    <IconButton
+                      size="small"
+                      onClick={() => onToggleImportant(threadEmail.id, !threadEmail.isImportant)}
+                      sx={{
+                        padding: 0.5,
+                        '&:hover': {
+                          backgroundColor: 'warning.light',
+                          color: 'warning.main',
+                        },
+                      }}
+                      aria-label={threadEmail.isImportant ? "Mark as not important" : "Mark as important"}
+                    >
+                      {threadEmail.isImportant ? (
+                        <Star sx={{ fontSize: '1rem', color: 'warning.main' }} />
+                      ) : (
+                        <StarBorder sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                )}
                 {onDelete && !isInTrash && (
                   <Tooltip title="Delete this email">
                     <IconButton
@@ -172,26 +195,46 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                   <Typography variant="h5" sx={{ fontWeight: 600 }}>
                     {email.subject}
                   </Typography>
-                  {email.isImportant && (
-                    <Star sx={{ color: "warning.main" }} />
+                  {onToggleImportant && (
+                    <Tooltip title={email.isImportant ? "Mark as not important" : "Mark as important"}>
+                      <IconButton
+                        onClick={() => onToggleImportant(email.id, !email.isImportant)}
+                        sx={{
+                          padding: 0.5,
+                          '&:hover': {
+                            backgroundColor: 'warning.light',
+                            color: 'warning.main',
+                          },
+                        }}
+                        aria-label={email.isImportant ? "Mark as not important" : "Mark as important"}
+                      >
+                        {email.isImportant ? (
+                          <Star sx={{ color: "warning.main" }} />
+                        ) : (
+                          <StarBorder sx={{ color: "text.secondary" }} />
+                        )}
+                      </IconButton>
+                    </Tooltip>
                   )}
                 </Box>
-                {onDelete && !isInTrash && (
-                  <Tooltip title="Delete this email">
-                    <IconButton
-                      onClick={() => onDelete(email.id)}
-                      sx={{
-                        '&:hover': {
-                          backgroundColor: 'error.light',
-                          color: 'error.main',
-                        },
-                      }}
-                      aria-label="Delete email"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Tooltip>
-                )}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {onDelete && !isInTrash && (
+                    <Tooltip title="Delete this email">
+                      <IconButton
+                        onClick={() => onDelete(email.id)}
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: 'error.light',
+                            color: 'error.main',
+                          },
+                        }}
+                        aria-label="Delete email"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
               </Box>
               <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                 {!email.isRead && (

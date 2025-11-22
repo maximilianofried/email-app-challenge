@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import {
   Star,
+  StarBorder,
   Delete,
 } from '@mui/icons-material';
 
@@ -26,7 +27,7 @@ interface EmailProps {
   updatedAt: Date;
 };
 
-const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: (id: number) => void; isInTrash?: boolean }> = ({ email, onClick, onDelete, isInTrash = false }) => {
+const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: (id: number) => void; onToggleImportant?: (id: number, isImportant: boolean) => void; isInTrash?: boolean }> = ({ email, onClick, onDelete, onToggleImportant, isInTrash = false }) => {
   const getInitials = (name: string) => {
     return name.split('@')[0].substring(0, 2).toUpperCase();
   };
@@ -96,9 +97,6 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: 
               >
                 {email.subject}
               </Typography>
-              {email.isImportant && (
-                <Star sx={{ color: 'warning.main', fontSize: '1rem' }} />
-              )}
             </Box>
 
             <Typography
@@ -120,8 +118,28 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: 
               {formatDate(email.createdAt)}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-              {email.isImportant && (
-                <Star sx={{ color: 'warning.main', fontSize: '1rem' }} />
+              {onToggleImportant && (
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleImportant(email.id, !email.isImportant);
+                  }}
+                  sx={{
+                    padding: 0.5,
+                    '&:hover': {
+                      backgroundColor: 'warning.light',
+                      color: 'warning.main',
+                    },
+                  }}
+                  aria-label={email.isImportant ? "Mark as not important" : "Mark as important"}
+                >
+                  {email.isImportant ? (
+                    <Star sx={{ color: 'warning.main', fontSize: '1rem' }} />
+                  ) : (
+                    <StarBorder sx={{ color: 'text.secondary', fontSize: '1rem' }} />
+                  )}
+                </IconButton>
               )}
               {!email.isRead && !isInTrash && (
                 <Box sx={{

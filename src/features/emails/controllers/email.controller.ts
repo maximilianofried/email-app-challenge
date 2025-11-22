@@ -206,6 +206,11 @@ export class EmailController {
         return NextResponse.json({ success: true }, { status: 200 });
       }
 
+      if (body.isImportant !== undefined) {
+        const email = await this.emailService.toggleImportant(emailId, body.isImportant);
+        return NextResponse.json(email, { status: 200 });
+      }
+
       return NextResponse.json(
         {
           error: "Invalid update data",
