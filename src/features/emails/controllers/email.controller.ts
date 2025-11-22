@@ -113,10 +113,13 @@ export class EmailController {
     try {
       const { searchParams } = new URL(request.url);
       const search = searchParams.get("search");
+      const threaded = searchParams.get("threaded");
 
       let emails;
 
-      if (search && search.trim()) {
+      if (threaded === "true") {
+        emails = await this.emailService.getThreadedEmails();
+      } else if (search && search.trim()) {
         emails = await this.emailService.searchEmails(search.trim());
       } else {
         emails = await this.emailService.getAllEmails();

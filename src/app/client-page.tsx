@@ -30,8 +30,19 @@ export default function ClientPage(props: ClientPageProps) {
 
   const handleSearchChange = useCallback(async (searchTerm: string) => {
     if (!searchTerm.trim()) {
-      setDisplayedEmails(initialEmailList);
-      setIsSearching(false);
+      try {
+        const response = await fetch('/api/emails?threaded=true');
+        if (!response.ok) {
+          throw new Error('Failed to fetch threaded emails');
+        }
+        const emails = await response.json();
+        setDisplayedEmails(emails);
+      } catch (error) {
+        console.error('Error fetching threaded emails:', error);
+        setDisplayedEmails(initialEmailList);
+      } finally {
+        setIsSearching(false);
+      }
       return;
     }
 

@@ -1,11 +1,10 @@
 import React from 'react';
-import { desc } from 'drizzle-orm';
-import { db } from '@/lib/database';
-import { emails } from '@/lib/schema';
 import ClientPage from '@/app/client-page';
+import { EmailService } from '@/features/emails/services/email.service';
 
 export default async function Home() {
-  const emailListDef = await db.select().from(emails).orderBy(desc(emails.createdAt));
+  const emailService = new EmailService();
+  const emailListDef = await emailService.getThreadedEmails();
 
   return (
     <ClientPage emails={emailListDef} />

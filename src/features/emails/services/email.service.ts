@@ -54,4 +54,8 @@ export class EmailService {
   searchEmails = async (query: string): Promise<Email[]> => {
     return await this.emailRepository.search(query);
   };
+
+  getThreadedEmails = async (): Promise<Email[]> => {
+    return await this.emailRepository.findLatestByThread();
+  };
 }

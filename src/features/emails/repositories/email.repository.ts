@@ -1,6 +1,6 @@
 import { db } from "@/lib/database";
 import { emails, Email, EmailData } from "@/lib/schema";
-import { eq, desc, like, or } from "drizzle-orm";
+import { eq, desc, like, or, sql, and } from "drizzle-orm";
 
 export class EmailRepository {
   findById = async (id: number): Promise<Email | undefined> => {
@@ -40,5 +40,30 @@ export class EmailRepository {
         )
       )
       .orderBy(desc(emails.createdAt));
+  };
+
+  findLatestByThread = async (): Promise<Email[]> => {
+    const subquery = db
+      .select({
+        threadId: emails.threadId,
+        latestCreatedAt: sql`MAX(${emails.createdAt})`.as('latestCreatedAt'),
+      })
+      .from(emails)
+      .groupBy(emails.threadId)
+      .as('latest');
+
+    const result = await db
+      .select()
+      .from(emails)
+      .innerJoin(
+        subquery,
+        and(
+          eq(emails.threadId, subquery.threadId),
+          eq(emails.createdAt, subquery.latestCreatedAt)
+        )
+      )
+      .orderBy(desc(emails.createdAt));
+
+    return result.map((r) => r.emails);
   };
 }
