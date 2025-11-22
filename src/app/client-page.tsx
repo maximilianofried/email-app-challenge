@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Chip, Typography, Button } from '@mui/material';
 import { Email as EmailIcon, Edit as EditIcon } from '@mui/icons-material';
@@ -10,14 +10,18 @@ import EmailComposer from '@/components/EmailComposer';
 import SearchBar from '@/components/SearchBar';
 import { Email } from '@/lib/schema';
 import { CreateEmailDto } from '@/features/emails/dtos/emails.dto';
+import { useFilter } from '@/contexts/FilterContext';
 
 interface ClientPageProps {
   emails: Email[];
 }
 
+type FilterType = 'inbox' | 'important' | 'sent';
+
 export default function ClientPage(props: ClientPageProps) {
   const { emails: initialEmailList } = props;
   const router = useRouter();
+  const { activeFilter } = useFilter();
   const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [threadEmails, setThreadEmails] = useState<Email[]>([]);
@@ -29,21 +33,47 @@ export default function ClientPage(props: ClientPageProps) {
   const unreadCount = displayedEmails.filter(email => !email.isRead).length;
   const importantCount = displayedEmails.filter(email => email.isImportant).length;
 
+  const fetchEmailsByFilter = useCallback(async (filter: FilterType, searchTerm?: string) => {
+    setIsSearching(true);
+    try {
+      let url = '/api/emails?';
+      
+      if (searchTerm && searchTerm.trim()) {
+        url += `search=${encodeURIComponent(searchTerm.trim())}`;
+      } else {
+        if (filter === 'inbox') {
+          url += 'threaded=true&direction=incoming';
+        } else if (filter === 'important') {
+          url += 'important=true';
+        } else if (filter === 'sent') {
+          url += 'direction=outgoing';
+        } else {
+          url += 'threaded=true';
+        }
+      }
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch emails');
+      }
+      const emails = await response.json();
+      setDisplayedEmails(emails);
+    } catch (error) {
+      console.error('Error fetching emails:', error);
+      setDisplayedEmails(initialEmailList);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [initialEmailList]);
+
+
+  useEffect(() => {
+    fetchEmailsByFilter(activeFilter);
+  }, [activeFilter, fetchEmailsByFilter]);
+
   const handleSearchChange = useCallback(async (searchTerm: string) => {
     if (!searchTerm.trim()) {
-      try {
-        const response = await fetch('/api/emails?threaded=true');
-        if (!response.ok) {
-          throw new Error('Failed to fetch threaded emails');
-        }
-        const emails = await response.json();
-        setDisplayedEmails(emails);
-      } catch (error) {
-        console.error('Error fetching threaded emails:', error);
-        setDisplayedEmails(initialEmailList);
-      } finally {
-        setIsSearching(false);
-      }
+      fetchEmailsByFilter(activeFilter);
       return;
     }
 
@@ -61,7 +91,7 @@ export default function ClientPage(props: ClientPageProps) {
     } finally {
       setIsSearching(false);
     }
-  }, [initialEmailList]);
+  }, [activeFilter, fetchEmailsByFilter, initialEmailList]);
 
   const handleEmailClick = async (emailId: number) => {
     if (selectedEmailId === emailId && selectedEmail) {
@@ -119,7 +149,7 @@ export default function ClientPage(props: ClientPageProps) {
         <Box sx={{ p: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Inbox
+              {activeFilter === 'inbox' ? 'Inbox' : activeFilter === 'important' ? 'Important' : 'Sent'}
             </Typography>
             <Button
               variant="contained"
@@ -132,7 +162,7 @@ export default function ClientPage(props: ClientPageProps) {
           </Box>
 
           {/* Stats */}
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <Chip
               label={`${displayedEmails.length} Total`}
               size="small"
@@ -145,12 +175,14 @@ export default function ClientPage(props: ClientPageProps) {
               color="warning"
               variant="outlined"
             />
-            <Chip
-              label={`${importantCount} Important`}
-              size="small"
-              color="secondary"
-              variant="outlined"
-            />
+            {activeFilter !== 'important' && (
+              <Chip
+                label={`${importantCount} Important`}
+                size="small"
+                color="secondary"
+                variant="outlined"
+              />
+            )}
           </Box>
         </Box>
 

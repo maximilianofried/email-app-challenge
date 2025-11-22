@@ -1,5 +1,5 @@
 import { db } from "@/lib/database";
-import { emails, Email, EmailData } from "@/lib/schema";
+import { emails, Email, EmailData, EmailDirection } from "@/lib/schema";
 import { eq, desc, asc, like, or, sql, and } from "drizzle-orm";
 
 export class EmailRepository {
@@ -67,11 +67,54 @@ export class EmailRepository {
     return result.map((r) => r.emails);
   };
 
+  findLatestByThreadAndDirection = async (direction: EmailDirection): Promise<Email[]> => {
+    const subquery = db
+      .select({
+        threadId: emails.threadId,
+        latestCreatedAt: sql`MAX(${emails.createdAt})`.as('latestCreatedAt'),
+      })
+      .from(emails)
+      .where(eq(emails.direction, direction))
+      .groupBy(emails.threadId)
+      .as('latest');
+
+    const result = await db
+      .select()
+      .from(emails)
+      .innerJoin(
+        subquery,
+        and(
+          eq(emails.threadId, subquery.threadId),
+          eq(emails.createdAt, subquery.latestCreatedAt),
+          eq(emails.direction, direction)
+        )
+      )
+      .orderBy(desc(emails.createdAt));
+
+    return result.map((r) => r.emails);
+  };
+
   findByThreadId = async (threadId: string): Promise<Email[]> => {
     return await db
       .select()
       .from(emails)
       .where(eq(emails.threadId, threadId))
       .orderBy(asc(emails.createdAt));
+  };
+
+  findByDirection = async (direction: EmailDirection): Promise<Email[]> => {
+    return await db
+      .select()
+      .from(emails)
+      .where(eq(emails.direction, direction))
+      .orderBy(desc(emails.createdAt));
+  };
+
+  findByImportant = async (isImportant: boolean): Promise<Email[]> => {
+    return await db
+      .select()
+      .from(emails)
+      .where(eq(emails.isImportant, isImportant))
+      .orderBy(desc(emails.createdAt));
   };
 }

@@ -30,6 +30,7 @@ export class EmailService {
     }
 
     const threadId = data.threadId || randomUUID();
+    const direction = data.direction || EmailDirection.OUTGOING;
 
     const emailData: EmailData = {
       threadId,
@@ -39,8 +40,8 @@ export class EmailService {
       cc: data.cc || null,
       bcc: data.bcc || null,
       content: data.content,
-      direction: data.direction || EmailDirection.OUTGOING,
-      isRead: false,
+      direction,
+      isRead: direction === EmailDirection.OUTGOING,
       isImportant: false,
     };
 
@@ -55,11 +56,29 @@ export class EmailService {
     return await this.emailRepository.search(query);
   };
 
-  getThreadedEmails = async (): Promise<Email[]> => {
+  getThreadedEmails = async (direction?: EmailDirection): Promise<Email[]> => {
+    if (direction) {
+      return await this.emailRepository.findLatestByThreadAndDirection(direction);
+    }
     return await this.emailRepository.findLatestByThread();
   };
 
   getEmailsByThreadId = async (threadId: string): Promise<Email[]> => {
     return await this.emailRepository.findByThreadId(threadId);
+  };
+
+  getEmailsByFilter = async (filter: {
+    direction?: EmailDirection;
+    isImportant?: boolean;
+  }): Promise<Email[]> => {
+    if (filter.direction !== undefined) {
+      return await this.emailRepository.findByDirection(filter.direction);
+    }
+
+    if (filter.isImportant !== undefined) {
+      return await this.emailRepository.findByImportant(filter.isImportant);
+    }
+
+    return await this.emailRepository.findAll();
   };
 }

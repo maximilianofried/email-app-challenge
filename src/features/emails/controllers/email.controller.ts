@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EmailService } from "../services/email.service";
 import { CreateEmailDto } from "../dtos/emails.dto";
+import { EmailDirection } from "@/lib/schema";
 
 export class EmailController {
   private emailService: EmailService;
@@ -120,14 +121,33 @@ export class EmailController {
     try {
       const { searchParams } = new URL(request.url);
       const search = searchParams.get("search");
-      const threaded = searchParams.get("threaded");
+      const threaded = searchParams.get("threaded") === "true";
+      const direction = searchParams.get("direction");
+      const important = searchParams.get("important");
+
+      const hasFilters = search || important;
+      const hasDirectionFilter = direction === "incoming" || direction === "outgoing";
 
       let emails;
 
-      if (threaded === "true") {
+      if (hasFilters) {
+        if (search && search.trim()) {
+          emails = await this.emailService.searchEmails(search.trim());
+        } else {
+          const filter: { isImportant?: boolean } = {};
+
+          if (important === "true") {
+            filter.isImportant = true;
+          }
+
+          emails = await this.emailService.getEmailsByFilter(filter);
+        }
+      } else if (threaded && hasDirectionFilter) {
+        emails = await this.emailService.getThreadedEmails(direction as EmailDirection);
+      } else if (threaded) {
         emails = await this.emailService.getThreadedEmails();
-      } else if (search && search.trim()) {
-        emails = await this.emailService.searchEmails(search.trim());
+      } else if (hasDirectionFilter) {
+        emails = await this.emailService.getEmailsByFilter({ direction: direction as EmailDirection });
       } else {
         emails = await this.emailService.getAllEmails();
       }
