@@ -29,7 +29,7 @@ interface EmailProps {
   updatedAt: Date;
 };
 
-const EmailCard: React.FC<{ email: EmailProps }> = ({ email }) => {
+const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void }> = ({ email, onClick }) => {
   const getInitials = (name: string) => {
     return name.split('@')[0].substring(0, 2).toUpperCase();
   };
@@ -49,6 +49,7 @@ const EmailCard: React.FC<{ email: EmailProps }> = ({ email }) => {
   return (
     <Card
       data-testid={`email-card-${email.id}`}
+      onClick={onClick}
       sx={{
         borderRadius: 1,
         boxShadow: email.isRead ? 0 : 1,
