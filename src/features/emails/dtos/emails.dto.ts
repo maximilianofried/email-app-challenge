@@ -1,4 +1,4 @@
-import { EmailDirection } from "@/lib/schema";
+import { EmailDirection, Email } from "@/lib/schema";
 
 export interface CreateEmailDto {
   subject: string;
@@ -9,5 +9,18 @@ export interface CreateEmailDto {
   bcc?: string;
   threadId?: string;
   direction?: EmailDirection;
+}
+
+export interface EmailListFiltersDto {
+  search?: string;
+  threaded?: boolean;
+  direction?: EmailDirection;
+  important?: boolean;
+  deleted?: boolean;
+}
+
+export interface EmailWithThreadDto {
+  email: Email;
+  thread: Email[];
 }
 

@@ -40,7 +40,7 @@ export default function ClientPage(props: ClientPageProps) {
     }
     try {
       let url = '/api/emails?';
-      
+
       if (searchTerm && searchTerm.trim()) {
         url += `search=${encodeURIComponent(searchTerm.trim())}`;
       } else {
@@ -253,7 +253,6 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to toggle important status');
       }
 
-      const updatedEmail = await response.json();
 
       // If we're in the important view and unmarking as important, refresh the list
       if (activeFilter === 'important' && !isImportant) {

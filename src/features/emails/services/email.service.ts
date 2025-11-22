@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { EmailRepository } from "../repositories/email.repository";
 import { Email, EmailDirection, EmailData } from "@/lib/schema";
-import { CreateEmailDto } from "../dtos/emails.dto";
+import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from "../dtos/emails.dto";
 
 export class EmailService {
   private emailRepository: EmailRepository;
@@ -144,5 +144,57 @@ export class EmailService {
 
   getDeletedEmails = async (): Promise<Email[]> => {
     return await this.emailRepository.findDeleted();
+  };
+
+  getEmailWithThread = async (id: number): Promise<EmailWithThreadDto> => {
+    const email = await this.getEmailById(id);
+
+    let threadEmails: Email[];
+    if (email.isDeleted) {
+      // If viewing a deleted email, check if entire thread is deleted
+      threadEmails = await this.getThreadEmailsForDeletedEmail(email.threadId);
+    } else {
+      // If viewing a non-deleted email, show only non-deleted emails
+      threadEmails = await this.getEmailsByThreadId(email.threadId, false, false);
+    }
+
+    return {
+      email,
+      thread: threadEmails,
+    };
+  };
+
+  getEmailsByFilters = async (filters: EmailListFiltersDto): Promise<Email[]> => {
+    // Handle deleted emails filter
+    if (filters.deleted) {
+      return await this.getDeletedEmails();
+    }
+
+    // Handle search filter (takes priority over other filters)
+    if (filters.search && filters.search.trim()) {
+      return await this.searchEmails(filters.search.trim());
+    }
+
+    // Handle important filter
+    if (filters.important !== undefined) {
+      const filter = { isImportant: filters.important };
+      return await this.getEmailsByFilter(filter);
+    }
+
+    // Handle threaded view with optional direction filter
+    if (filters.threaded) {
+      if (filters.direction) {
+        return await this.getThreadedEmails(filters.direction);
+      }
+      return await this.getThreadedEmails();
+    }
+
+    // Handle direction filter
+    if (filters.direction) {
+      return await this.getEmailsByFilter({ direction: filters.direction });
+    }
+
+    // Default: return all emails
+    return await this.getAllEmails();
   };
 }

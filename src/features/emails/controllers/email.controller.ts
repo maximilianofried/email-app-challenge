@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EmailService } from "../services/email.service";
-import { CreateEmailDto } from "../dtos/emails.dto";
-import { EmailDirection, Email } from "@/lib/schema";
+import { CreateEmailDto, EmailListFiltersDto } from "../dtos/emails.dto";
+import { EmailDirection } from "@/lib/schema";
 
 export class EmailController {
   private emailService: EmailService;
@@ -27,24 +27,9 @@ export class EmailController {
         );
       }
 
-      const email = await this.emailService.getEmailById(emailId);
-      
-      let threadEmails: Email[];
-      if (email.isDeleted) {
-        // If viewing a deleted email, check if entire thread is deleted
-        threadEmails = await this.emailService.getThreadEmailsForDeletedEmail(email.threadId);
-      } else {
-        // If viewing a non-deleted email, show only non-deleted emails
-        threadEmails = await this.emailService.getEmailsByThreadId(email.threadId, false, false);
-      }
+      const email = await this.emailService.getEmailWithThread(emailId);
 
-      return NextResponse.json(
-        {
-          email,
-          thread: threadEmails,
-        },
-        { status: 200 }
-      );
+      return NextResponse.json(email, { status: 200 });
     } catch (error) {
       if (error instanceof Error && error.message === "Email not Found") {
         return NextResponse.json(
@@ -79,24 +64,6 @@ export class EmailController {
         direction: body.direction,
       };
 
-      if (!emailData.subject || !emailData.to || !emailData.content) {
-        return NextResponse.json(
-          {
-            error: "Subject, to, and content are required",
-          },
-          { status: 400 }
-        );
-      }
-
-      if (!emailData.from) {
-        return NextResponse.json(
-          {
-            error: "From is required",
-          },
-          { status: 400 }
-        );
-      }
-
       const email = await this.emailService.createEmail(emailData);
 
       return NextResponse.json(email, { status: 200 });
@@ -128,42 +95,17 @@ export class EmailController {
   findAll = async (request: NextRequest): Promise<NextResponse> => {
     try {
       const { searchParams } = new URL(request.url);
-      const search = searchParams.get("search");
-      const threaded = searchParams.get("threaded") === "true";
-      const direction = searchParams.get("direction");
-      const important = searchParams.get("important");
-      const deleted = searchParams.get("deleted") === "true";
 
-      let emails;
+      // Parse query parameters into filter DTO
+      const filters: EmailListFiltersDto = {
+        search: searchParams.get("search") || undefined,
+        threaded: searchParams.get("threaded") === "true",
+        direction: (searchParams.get("direction") as EmailDirection) || undefined,
+        important: searchParams.get("important") === "true" ? true : searchParams.get("important") === "false" ? false : undefined,
+        deleted: searchParams.get("deleted") === "true",
+      };
 
-      if (deleted) {
-        emails = await this.emailService.getDeletedEmails();
-      } else {
-        const hasFilters = search || important;
-        const hasDirectionFilter = direction === "incoming" || direction === "outgoing";
-
-        if (hasFilters) {
-          if (search && search.trim()) {
-            emails = await this.emailService.searchEmails(search.trim());
-          } else {
-            const filter: { isImportant?: boolean } = {};
-
-            if (important === "true") {
-              filter.isImportant = true;
-            }
-
-            emails = await this.emailService.getEmailsByFilter(filter);
-          }
-        } else if (threaded && hasDirectionFilter) {
-          emails = await this.emailService.getThreadedEmails(direction as EmailDirection);
-        } else if (threaded) {
-          emails = await this.emailService.getThreadedEmails();
-        } else if (hasDirectionFilter) {
-          emails = await this.emailService.getEmailsByFilter({ direction: direction as EmailDirection });
-        } else {
-          emails = await this.emailService.getAllEmails();
-        }
-      }
+      const emails = await this.emailService.getEmailsByFilters(filters);
 
       return NextResponse.json(emails, { status: 200 });
     } catch (error) {
