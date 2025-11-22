@@ -1,3 +1,5 @@
+import { EmailDirection } from "@/lib/schema";
+
 export interface CreateEmailDto {
   subject: string;
   to: string;
@@ -6,5 +8,6 @@ export interface CreateEmailDto {
   cc?: string;
   bcc?: string;
   threadId?: string;
+  direction?: EmailDirection;
 }
 

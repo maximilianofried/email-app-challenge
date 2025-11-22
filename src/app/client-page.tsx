@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Chip, InputAdornment, TextField, Typography, Button } from '@mui/material';
-import { Email as EmailIcon, Search as SearchIcon, Edit as EditIcon } from '@mui/icons-material';
+import { Box, Chip, Typography, Button } from '@mui/material';
+import { Email as EmailIcon, Edit as EditIcon } from '@mui/icons-material';
 import EmailCard from '@/components/EmailCard';
 import EmailContent from '@/components/EmailContent';
 import EmailComposer from '@/components/EmailComposer';
+import SearchBar from '@/components/SearchBar';
 import { Email } from '@/lib/schema';
 import { CreateEmailDto } from '@/features/emails/dtos/emails.dto';
 
@@ -15,15 +16,40 @@ interface ClientPageProps {
 }
 
 export default function ClientPage(props: ClientPageProps) {
-  const { emails: emailList } = props;
+  const { emails: initialEmailList } = props;
   const router = useRouter();
   const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [displayedEmails, setDisplayedEmails] = useState<Email[]>(initialEmailList);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const unreadCount = emailList.filter(email => !email.isRead).length;
-  const importantCount = emailList.filter(email => email.isImportant).length;
+  const unreadCount = displayedEmails.filter(email => !email.isRead).length;
+  const importantCount = displayedEmails.filter(email => email.isImportant).length;
+
+  const handleSearchChange = useCallback(async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setDisplayedEmails(initialEmailList);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/emails?search=${encodeURIComponent(searchTerm.trim())}`);
+      if (!response.ok) {
+        throw new Error('Failed to search emails');
+      }
+      const emails = await response.json();
+      setDisplayedEmails(emails);
+    } catch (error) {
+      console.error('Error searching emails:', error);
+      setDisplayedEmails(initialEmailList);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [initialEmailList]);
 
   const handleEmailClick = async (emailId: number) => {
     if (selectedEmailId === emailId && selectedEmail) {
@@ -95,7 +121,7 @@ export default function ClientPage(props: ClientPageProps) {
           {/* Stats */}
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <Chip
-              label={`${emailList.length} Total`}
+              label={`${displayedEmails.length} Total`}
               size="small"
               color="primary"
               variant="outlined"
@@ -116,26 +142,7 @@ export default function ClientPage(props: ClientPageProps) {
         </Box>
 
         {/* Search Bar */}
-        <Box sx={{ p: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
-          <TextField
-            fullWidth
-            placeholder="Search emails..."
-            variant="outlined"
-            size="small"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action"/>
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'background.default',
-              },
-            }}
-          />
-        </Box>
+        <SearchBar onSearchChange={handleSearchChange} />
 
         {/* Email List - Scrollable */}
         <Box sx={{
@@ -143,15 +150,21 @@ export default function ClientPage(props: ClientPageProps) {
           overflow: 'auto',
           p: 1,
         }} data-testid="email-list">
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {emailList.map((email) => (
-              <EmailCard
-                key={email.id}
-                email={email}
-                onClick={() => handleEmailClick(email.id)}
-              />
-            ))}
-          </Box>
+          {isSearching ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+              <Typography color="text.secondary">Searching...</Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {displayedEmails.map((email) => (
+                <EmailCard
+                  key={email.id}
+                  email={email}
+                  onClick={() => handleEmailClick(email.id)}
+                />
+              ))}
+            </Box>
+          )}
         </Box>
       </Box>
 
