@@ -19,7 +19,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email }) => {
   };
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleString([], {
+    return new Date(date).toLocaleString('en-US', {
       year: "numeric",
       month: "long",
       day: "numeric",

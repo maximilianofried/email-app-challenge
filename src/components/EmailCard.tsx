@@ -40,9 +40,13 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void }> = ({ emai
     const diffInHours = (now.getTime() - emailDate.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return emailDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return emailDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } else {
-      return emailDate.toLocaleDateString();
+      return emailDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
     }
   };
 
