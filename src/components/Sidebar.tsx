@@ -6,7 +6,7 @@ import StarIcon from '@mui/icons-material/Star';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-type FilterType = 'inbox' | 'important' | 'sent';
+type FilterType = 'inbox' | 'important' | 'sent' | 'trash';
 
 interface SidebarProps {
   activeFilter: FilterType;
@@ -98,7 +98,14 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
 
           <Divider sx={{ my: 2 }} />
 
-          <MenuItem sx={{ borderRadius: 2, mb: 0.5 }}>
+          <MenuItem
+            sx={{
+              borderRadius: 2,
+              mb: 0.5,
+              backgroundColor: activeFilter === 'trash' ? 'action.selected' : 'transparent',
+            }}
+            onClick={() => onFilterChange('trash')}
+          >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <DeleteIcon fontSize="small" />
             </ListItemIcon>

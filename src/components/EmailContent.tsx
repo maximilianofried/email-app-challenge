@@ -6,17 +6,21 @@ import {
   Chip,
   Avatar,
   Paper,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
-import { Star } from "@mui/icons-material";
+import { Star, Delete } from "@mui/icons-material";
 import { Email } from "@/lib/schema";
 
 interface EmailContentProps {
   email: Email;
   threadEmails?: Email[];
   selectedEmailId?: number | null;
+  onDelete?: (emailId: number) => void;
+  isInTrash?: boolean;
 }
 
-const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], selectedEmailId }) => {
+const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], selectedEmailId, onDelete, isInTrash = false }) => {
   const selectedEmailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -85,9 +89,29 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                   to {threadEmail.to}
                 </Typography>
               </Box>
-              <Typography variant="caption" color="text.secondary">
-                {formatTime(threadEmail.createdAt)}
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {formatTime(threadEmail.createdAt)}
+                </Typography>
+                {onDelete && !isInTrash && (
+                  <Tooltip title="Delete this email">
+                    <IconButton
+                      size="small"
+                      onClick={() => onDelete(threadEmail.id)}
+                      sx={{
+                        padding: 0.5,
+                        '&:hover': {
+                          backgroundColor: 'error.light',
+                          color: 'error.main',
+                        },
+                      }}
+                      aria-label="Delete email"
+                    >
+                      <Delete sx={{ fontSize: '1rem' }} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
             </Box>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
               {!threadEmail.isRead && (
@@ -143,12 +167,30 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
               {getInitials(email.from)}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                  {email.subject}
-                </Typography>
-                {email.isImportant && (
-                  <Star sx={{ color: "warning.main" }} />
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    {email.subject}
+                  </Typography>
+                  {email.isImportant && (
+                    <Star sx={{ color: "warning.main" }} />
+                  )}
+                </Box>
+                {onDelete && !isInTrash && (
+                  <Tooltip title="Delete this email">
+                    <IconButton
+                      onClick={() => onDelete(email.id)}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: 'error.light',
+                          color: 'error.main',
+                        },
+                      }}
+                      aria-label="Delete email"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Tooltip>
                 )}
               </Box>
               <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>

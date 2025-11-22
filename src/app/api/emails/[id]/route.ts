@@ -18,3 +18,12 @@ export async function PATCH(
   const emailController = new EmailController();
   return await emailController.update(request, id);
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
+  const { id } = await params;
+  const emailController = new EmailController();
+  return await emailController.delete(request, id);
+}

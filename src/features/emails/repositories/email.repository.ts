@@ -22,6 +22,7 @@ export class EmailRepository {
     return await db
       .select()
       .from(emails)
+      .where(eq(emails.isDeleted, false))
       .orderBy(desc(emails.createdAt));
   };
 
@@ -31,12 +32,15 @@ export class EmailRepository {
       .select()
       .from(emails)
       .where(
-        or(
-          like(emails.subject, searchPattern),
-          like(emails.to, searchPattern),
-          like(emails.cc, searchPattern),
-          like(emails.bcc, searchPattern),
-          like(emails.content, searchPattern)
+        and(
+          eq(emails.isDeleted, false),
+          or(
+            like(emails.subject, searchPattern),
+            like(emails.to, searchPattern),
+            like(emails.cc, searchPattern),
+            like(emails.bcc, searchPattern),
+            like(emails.content, searchPattern)
+          )
         )
       )
       .orderBy(desc(emails.createdAt));
@@ -49,6 +53,7 @@ export class EmailRepository {
         latestCreatedAt: sql`MAX(${emails.createdAt})`.as('latestCreatedAt'),
       })
       .from(emails)
+      .where(eq(emails.isDeleted, false))
       .groupBy(emails.threadId)
       .as('latest');
 
@@ -59,7 +64,8 @@ export class EmailRepository {
         subquery,
         and(
           eq(emails.threadId, subquery.threadId),
-          eq(emails.createdAt, subquery.latestCreatedAt)
+          eq(emails.createdAt, subquery.latestCreatedAt),
+          eq(emails.isDeleted, false)
         )
       )
       .orderBy(desc(emails.createdAt));
@@ -74,7 +80,7 @@ export class EmailRepository {
         latestCreatedAt: sql`MAX(${emails.createdAt})`.as('latestCreatedAt'),
       })
       .from(emails)
-      .where(eq(emails.direction, direction))
+      .where(and(eq(emails.direction, direction), eq(emails.isDeleted, false)))
       .groupBy(emails.threadId)
       .as('latest');
 
@@ -86,7 +92,8 @@ export class EmailRepository {
         and(
           eq(emails.threadId, subquery.threadId),
           eq(emails.createdAt, subquery.latestCreatedAt),
-          eq(emails.direction, direction)
+          eq(emails.direction, direction),
+          eq(emails.isDeleted, false)
         )
       )
       .orderBy(desc(emails.createdAt));
@@ -94,11 +101,19 @@ export class EmailRepository {
     return result.map((r) => r.emails);
   };
 
-  findByThreadId = async (threadId: string): Promise<Email[]> => {
+  findByThreadId = async (threadId: string, includeDeleted: boolean = false, onlyDeleted: boolean = false): Promise<Email[]> => {
+    const conditions = [eq(emails.threadId, threadId)];
+
+    if (onlyDeleted) {
+      conditions.push(eq(emails.isDeleted, true));
+    } else if (!includeDeleted) {
+      conditions.push(eq(emails.isDeleted, false));
+    }
+
     return await db
       .select()
       .from(emails)
-      .where(eq(emails.threadId, threadId))
+      .where(and(...conditions))
       .orderBy(asc(emails.createdAt));
   };
 
@@ -106,7 +121,7 @@ export class EmailRepository {
     return await db
       .select()
       .from(emails)
-      .where(eq(emails.direction, direction))
+      .where(and(eq(emails.direction, direction), eq(emails.isDeleted, false)))
       .orderBy(desc(emails.createdAt));
   };
 
@@ -114,7 +129,7 @@ export class EmailRepository {
     return await db
       .select()
       .from(emails)
-      .where(eq(emails.isImportant, isImportant))
+      .where(and(eq(emails.isImportant, isImportant), eq(emails.isDeleted, false)))
       .orderBy(desc(emails.createdAt));
   };
 
@@ -126,5 +141,34 @@ export class EmailRepository {
       .returning();
 
     return result[0];
+  };
+
+  markThreadAsRead = async (threadId: string): Promise<void> => {
+    await db
+      .update(emails)
+      .set({ isRead: true, updatedAt: new Date() })
+      .where(eq(emails.threadId, threadId));
+  };
+
+  delete = async (id: number): Promise<void> => {
+    await db
+      .update(emails)
+      .set({ isDeleted: true, updatedAt: new Date() })
+      .where(eq(emails.id, id));
+  };
+
+  deleteByThreadId = async (threadId: string): Promise<void> => {
+    await db
+      .update(emails)
+      .set({ isDeleted: true, updatedAt: new Date() })
+      .where(eq(emails.threadId, threadId));
+  };
+
+  findDeleted = async (): Promise<Email[]> => {
+    return await db
+      .select()
+      .from(emails)
+      .where(eq(emails.isDeleted, true))
+      .orderBy(desc(emails.createdAt));
   };
 }

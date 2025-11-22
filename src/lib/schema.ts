@@ -18,6 +18,9 @@ export const emails = sqliteTable("emails", {
   isImportant: integer("is_important", { mode: "boolean" })
     .default(false)
     .notNull(),
+  isDeleted: integer("is_deleted", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   direction: text("direction")
     .notNull()
     .$type<EmailDirection>()

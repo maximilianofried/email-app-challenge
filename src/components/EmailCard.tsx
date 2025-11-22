@@ -6,14 +6,11 @@ import {
   Box,
   Chip,
   Avatar,
-  Divider,
   IconButton,
 } from '@mui/material';
 import {
   Star,
-  StarBorder,
-  MarkEmailRead,
-  MarkEmailUnread,
+  Delete,
 } from '@mui/icons-material';
 
 interface EmailProps {
@@ -29,7 +26,7 @@ interface EmailProps {
   updatedAt: Date;
 };
 
-const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void }> = ({ email, onClick }) => {
+const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: (id: number) => void; isInTrash?: boolean }> = ({ email, onClick, onDelete, isInTrash = false }) => {
   const getInitials = (name: string) => {
     return name.split('@')[0].substring(0, 2).toUpperCase();
   };
@@ -56,10 +53,10 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void }> = ({ emai
       onClick={onClick}
       sx={{
         borderRadius: 1,
-        boxShadow: email.isRead ? 0 : 1,
-        border: email.isRead ? '1px solid' : '2px solid',
-        borderColor: email.isRead ? 'divider' : 'primary.main',
-        backgroundColor: email.isRead ? 'background.paper' : 'action.hover',
+        boxShadow: (email.isRead || isInTrash) ? 0 : 1,
+        border: (email.isRead || isInTrash) ? '1px solid' : '2px solid',
+        borderColor: (email.isRead || isInTrash) ? 'divider' : 'primary.main',
+        backgroundColor: (email.isRead || isInTrash) ? 'background.paper' : 'action.hover',
         transition: 'all 0.2s ease-in-out',
         cursor: 'pointer',
         '&:hover': {
@@ -122,17 +119,36 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void }> = ({ emai
             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
               {formatDate(email.createdAt)}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 0.25 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
               {email.isImportant && (
                 <Star sx={{ color: 'warning.main', fontSize: '1rem' }} />
               )}
-              {!email.isRead && (
+              {!email.isRead && !isInTrash && (
                 <Box sx={{
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
                   bgcolor: 'primary.main',
                 }} />
+              )}
+              {onDelete && !isInTrash && (
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(email.id);
+                  }}
+                  sx={{
+                    padding: 0.5,
+                    '&:hover': {
+                      backgroundColor: 'error.light',
+                      color: 'error.main',
+                    },
+                  }}
+                  aria-label="Delete email"
+                >
+                  <Delete sx={{ fontSize: '1rem' }} />
+                </IconButton>
               )}
             </Box>
           </Box>
@@ -161,7 +177,7 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void }> = ({ emai
 
         {/* Compact Status */}
         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
-          {!email.isRead && (
+          {!email.isRead && !isInTrash && (
             <Chip
               label="Unread"
               size="small"

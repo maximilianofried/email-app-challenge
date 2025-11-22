@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-type FilterType = 'inbox' | 'important' | 'sent';
+type FilterType = 'inbox' | 'important' | 'sent' | 'trash';
 
 interface FilterContextType {
   activeFilter: FilterType;
