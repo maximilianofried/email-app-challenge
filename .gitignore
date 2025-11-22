@@ -1,0 +1,48 @@
+# Dependencies directory of Node.js
+/node_modules
+
+# next.js
+/.next/
+/out
+
+# typescript
+next-env.d.ts
+*.tsbuildinfo
+
+# JUnit test reports
+junit-reports/
+
+# SQLite database (test)
+sqlite.test.db
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE - VS Code
+.vscode/
+
+# IDE
+.idea/
+
+# IDE - CoderPad
+.coderpad/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# Temporary files
+*.swp
+*.swo
+*~
