@@ -1,5 +1,5 @@
 import { db } from "@/lib/database";
-import { emails, Email } from "@/lib/schema";
+import { emails, Email, EmailData } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
 export class EmailRepository {
@@ -10,6 +10,11 @@ export class EmailRepository {
       .where(eq(emails.id, id))
       .limit(1);
 
+    return result[0];
+  };
+
+  create = async (data: EmailData): Promise<Email> => {
+    const result = await db.insert(emails).values(data).returning();
     return result[0];
   };
 }
