@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Chip, InputAdornment, TextField, Typography } from '@mui/material';
-import { Email as EmailIcon, Search as SearchIcon } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
+import { Box, Chip, InputAdornment, TextField, Typography, Button } from '@mui/material';
+import { Email as EmailIcon, Search as SearchIcon, Edit as EditIcon } from '@mui/icons-material';
 import EmailCard from '@/components/EmailCard';
 import EmailContent from '@/components/EmailContent';
+import EmailComposer from '@/components/EmailComposer';
 import { Email } from '@/lib/schema';
+import { CreateEmailDto } from '@/features/emails/dtos/emails.dto';
 
 interface ClientPageProps {
   emails: Email[];
@@ -13,9 +16,11 @@ interface ClientPageProps {
 
 export default function ClientPage(props: ClientPageProps) {
   const { emails: emailList } = props;
+  const router = useRouter();
   const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
 
   const unreadCount = emailList.filter(email => !email.isRead).length;
   const importantCount = emailList.filter(email => email.isImportant).length;
@@ -43,6 +48,23 @@ export default function ClientPage(props: ClientPageProps) {
     }
   };
 
+  const handleSendEmail = async (data: CreateEmailDto) => {
+    const response = await fetch('/api/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to send email');
+    }
+
+    router.refresh();
+  };
+
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* Left Panel - Email List */}
@@ -56,9 +78,19 @@ export default function ClientPage(props: ClientPageProps) {
       }}>
         {/* Header */}
         <Box sx={{ p: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: 'text.primary' }}>
-            Inbox
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              Inbox
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<EditIcon />}
+              onClick={() => setIsComposerOpen(true)}
+              size="small"
+            >
+              Compose
+            </Button>
+          </Box>
 
           {/* Stats */}
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
@@ -157,6 +189,11 @@ export default function ClientPage(props: ClientPageProps) {
           </Box>
         )}
       </Box>
+      <EmailComposer
+        open={isComposerOpen}
+        onClose={() => setIsComposerOpen(false)}
+        onSubmit={handleSendEmail}
+      />
     </Box>
   );
 }
