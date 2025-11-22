@@ -9,3 +9,12 @@ export async function GET(
   const emailController = new EmailController();
   return await emailController.findById(request, id);
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
+  const { id } = await params;
+  const emailController = new EmailController();
+  return await emailController.update(request, id);
+}

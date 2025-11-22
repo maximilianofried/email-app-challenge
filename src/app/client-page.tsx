@@ -109,6 +109,24 @@ export default function ClientPage(props: ClientPageProps) {
       const data = await response.json();
       setSelectedEmail(data.email);
       setThreadEmails(data.thread || []);
+
+      // Mark email as read if it's unread
+      if (data.email && !data.email.isRead) {
+        await fetch(`/api/emails/${emailId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ isRead: true }),
+        });
+
+        // Update the displayed emails list to reflect the read status
+        setDisplayedEmails(prevEmails =>
+          prevEmails.map(email =>
+            email.id === emailId ? { ...email, isRead: true } : email
+          )
+        );
+      }
     } catch (error) {
       console.error('Error fetching email:', error);
       setSelectedEmail(null);

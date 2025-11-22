@@ -163,4 +163,53 @@ export class EmailController {
       );
     }
   };
+
+  update = async (
+    request: NextRequest,
+    id: string
+  ): Promise<NextResponse> => {
+    try {
+      const emailId = parseInt(id, 10);
+
+      if (isNaN(emailId) || emailId <= 0) {
+        return NextResponse.json(
+          {
+            error: "Invalid ID",
+          },
+          { status: 400 }
+        );
+      }
+
+      const body = await request.json();
+
+      if (body.isRead !== undefined) {
+        const email = await this.emailService.markAsRead(emailId);
+        return NextResponse.json(email, { status: 200 });
+      }
+
+      return NextResponse.json(
+        {
+          error: "Invalid update data",
+        },
+        { status: 400 }
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message === "Email not Found") {
+        return NextResponse.json(
+          {
+            error: error.message,
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error ? error.message : "Internal Server Error",
+        },
+        { status: 500 }
+      );
+    }
+  };
 }

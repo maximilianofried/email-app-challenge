@@ -81,4 +81,14 @@ export class EmailService {
 
     return await this.emailRepository.findAll();
   };
+
+  markAsRead = async (id: number): Promise<Email> => {
+    const email = await this.emailRepository.findById(id);
+
+    if (!email) {
+      throw new Error("Email not Found");
+    }
+
+    return await this.emailRepository.update(id, { isRead: true });
+  };
 }

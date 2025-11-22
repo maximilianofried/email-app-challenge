@@ -117,4 +117,14 @@ export class EmailRepository {
       .where(eq(emails.isImportant, isImportant))
       .orderBy(desc(emails.createdAt));
   };
+
+  update = async (id: number, data: Partial<EmailData>): Promise<Email> => {
+    const result = await db
+      .update(emails)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(emails.id, id))
+      .returning();
+
+    return result[0];
+  };
 }
