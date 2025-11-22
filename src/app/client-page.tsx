@@ -20,6 +20,7 @@ export default function ClientPage(props: ClientPageProps) {
   const router = useRouter();
   const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [threadEmails, setThreadEmails] = useState<Email[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [displayedEmails, setDisplayedEmails] = useState<Email[]>(initialEmailList);
@@ -76,7 +77,8 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to fetch email');
       }
       const data = await response.json();
-      setSelectedEmail(data);
+      setSelectedEmail(data.email);
+      setThreadEmails(data.thread || []);
     } catch (error) {
       console.error('Error fetching email:', error);
       setSelectedEmail(null);
@@ -192,7 +194,7 @@ export default function ClientPage(props: ClientPageProps) {
             <Typography color="text.secondary">Loading...</Typography>
           </Box>
         ) : selectedEmail ? (
-          <EmailContent email={selectedEmail} />
+          <EmailContent email={selectedEmail} threadEmails={threadEmails} selectedEmailId={selectedEmailId} />
         ) : (
           <Box sx={{
             display: 'flex',

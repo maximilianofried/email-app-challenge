@@ -1,6 +1,6 @@
 import { db } from "@/lib/database";
 import { emails, Email, EmailData } from "@/lib/schema";
-import { eq, desc, like, or, sql, and } from "drizzle-orm";
+import { eq, desc, asc, like, or, sql, and } from "drizzle-orm";
 
 export class EmailRepository {
   findById = async (id: number): Promise<Email | undefined> => {
@@ -65,5 +65,13 @@ export class EmailRepository {
       .orderBy(desc(emails.createdAt));
 
     return result.map((r) => r.emails);
+  };
+
+  findByThreadId = async (threadId: string): Promise<Email[]> => {
+    return await db
+      .select()
+      .from(emails)
+      .where(eq(emails.threadId, threadId))
+      .orderBy(asc(emails.createdAt));
   };
 }

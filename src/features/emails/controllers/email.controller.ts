@@ -27,8 +27,15 @@ export class EmailController {
       }
 
       const email = await this.emailService.getEmailById(emailId);
+      const threadEmails = await this.emailService.getEmailsByThreadId(email.threadId);
 
-      return NextResponse.json(email, { status: 200 });
+      return NextResponse.json(
+        {
+          email,
+          thread: threadEmails,
+        },
+        { status: 200 }
+      );
     } catch (error) {
       if (error instanceof Error && error.message === "Email not Found") {
         return NextResponse.json(
