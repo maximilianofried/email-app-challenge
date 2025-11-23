@@ -7,6 +7,7 @@ import {
   emailListFiltersSchema,
   validateInput
 } from "@/lib/dtos/emails.dto";
+import { handleApiError, BadRequestError } from "@/lib/errors";
 
 export class EmailController {
   private emailService: EmailService;
@@ -25,35 +26,14 @@ export class EmailController {
       const emailId = parseInt(id, 10);
 
       if (isNaN(emailId) || emailId <= 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Invalid ID",
-          },
-          { status: 400 }
-        );
+        throw new BadRequestError("Invalid ID");
       }
 
       const email = await this.emailService.getEmailWithThread(emailId);
 
       return NextResponse.json(email, { status: 200 });
     } catch (error) {
-      if (error instanceof Error && error.message === "Email not Found") {
-        return NextResponse.json(
-          {
-            error: error.message,
-          },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          error:
-            error instanceof Error ? error.message : "Internal Server Error",
-        },
-        { status: 500 }
-      );
+      return handleApiError(error);
     }
   };
 
@@ -66,37 +46,7 @@ export class EmailController {
 
       return NextResponse.json(email, { status: 201 });
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Validation Error")) {
-        return NextResponse.json(
-          {
-            error: error.message,
-          },
-          { status: 400 }
-        );
-      }
-
-      // Keep existing error handling for now as fallback
-      if (
-        error instanceof Error &&
-        (error.message.includes("required") ||
-          error.message.includes("Subject") ||
-          error.message.includes("From"))
-      ) {
-        return NextResponse.json(
-          {
-            error: error.message,
-          },
-          { status: 400 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          error:
-            error instanceof Error ? error.message : "Internal Server Error",
-        },
-        { status: 500 }
-      );
+      return handleApiError(error);
     }
   };
 
@@ -106,10 +56,10 @@ export class EmailController {
 
       const rawFilters = {
         search: searchParams.get("search") || undefined,
-        threaded: searchParams.get("threaded") || undefined, // Zod will transform string to boolean
+        threaded: searchParams.get("threaded") || undefined,
         direction: searchParams.get("direction") || undefined,
-        important: searchParams.get("important") || undefined, // Zod will transform string to boolean
-        deleted: searchParams.get("deleted") || undefined, // Zod will transform string to boolean
+        important: searchParams.get("important") || undefined,
+        deleted: searchParams.get("deleted") || undefined,
       };
 
       const filters = validateInput(emailListFiltersSchema, rawFilters);
@@ -118,22 +68,7 @@ export class EmailController {
 
       return NextResponse.json(emails, { status: 200 });
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Validation Error")) {
-        return NextResponse.json(
-          {
-            error: error.message,
-          },
-          { status: 400 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          error:
-            error instanceof Error ? error.message : "Internal Server Error",
-        },
-        { status: 500 }
-      );
+      return handleApiError(error);
     }
   };
 
@@ -145,12 +80,7 @@ export class EmailController {
       const emailId = parseInt(id, 10);
 
       if (isNaN(emailId) || emailId <= 0) {
-        return NextResponse.json(
-          {
-            error: "Invalid ID",
-          },
-          { status: 400 }
-        );
+        throw new BadRequestError("Invalid ID");
       }
 
       const body = await request.json();
@@ -175,38 +105,9 @@ export class EmailController {
         return NextResponse.json(email, { status: 200 });
       }
 
-      return NextResponse.json(
-        {
-          error: "Invalid update data",
-        },
-        { status: 400 }
-      );
+      throw new BadRequestError("Invalid update data");
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Validation Error")) {
-        return NextResponse.json(
-          {
-            error: error.message,
-          },
-          { status: 400 }
-        );
-      }
-      
-      if (error instanceof Error && (error.message === "Email not Found" || error.message.includes("Cannot update"))) {
-        return NextResponse.json(
-          {
-            error: error.message,
-          },
-          { status: error.message === "Email not Found" ? 404 : 400 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          error:
-            error instanceof Error ? error.message : "Internal Server Error",
-        },
-        { status: 500 }
-      );
+      return handleApiError(error);
     }
   };
 
@@ -218,12 +119,7 @@ export class EmailController {
       const emailId = parseInt(id, 10);
 
       if (isNaN(emailId) || emailId <= 0) {
-        return NextResponse.json(
-          {
-            error: "Invalid ID",
-          },
-          { status: 400 }
-        );
+        throw new BadRequestError("Invalid ID");
       }
 
       const { searchParams } = new URL(request.url);
@@ -238,25 +134,8 @@ export class EmailController {
 
       return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
-      if (
-        error instanceof Error &&
-        (error.message === "Email not Found" || error.message === "Thread not Found")
-      ) {
-        return NextResponse.json(
-          {
-            error: error.message,
-          },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          error:
-            error instanceof Error ? error.message : "Internal Server Error",
-        },
-        { status: 500 }
-      );
+      return handleApiError(error);
     }
   };
 }
+

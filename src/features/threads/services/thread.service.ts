@@ -4,8 +4,8 @@ import { Email, EmailDirection } from "@/lib/schema";
 export class ThreadService {
   private threadRepository: ThreadRepository;
 
-  constructor() {
-    this.threadRepository = new ThreadRepository();
+  constructor(threadRepository?: ThreadRepository) {
+    this.threadRepository = threadRepository || new ThreadRepository();
   }
 
   getThreadedEmails = async (direction?: EmailDirection): Promise<Email[]> => {
@@ -56,4 +56,3 @@ export class ThreadService {
     await this.threadRepository.deleteByThreadId(threadId);
   };
 }
-

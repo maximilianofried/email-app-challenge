@@ -5,7 +5,7 @@ const createJestConfig = nextJest({ dir: './' });
 const config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.react.setup.js'],
-  testPathIgnorePatterns: ['/api/', '/app/api/'],
+  testPathIgnorePatterns: ['/api/', '/app/api/', '/features/.*/tests/.*\\.service\\.test\\.ts'],
   reporters: [
     'default',
     [

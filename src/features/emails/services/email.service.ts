@@ -3,21 +3,25 @@ import { EmailRepository } from "../repositories/email.repository";
 import { ThreadService } from "@/features/threads/services/thread.service";
 import { Email, EmailDirection, EmailData } from "@/lib/schema";
 import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from "@/lib/dtos/emails.dto";
+import { NotFoundError, BadRequestError } from "@/lib/errors";
 
 export class EmailService {
   private emailRepository: EmailRepository;
   private threadService: ThreadService;
 
-  constructor() {
-    this.emailRepository = new EmailRepository();
-    this.threadService = new ThreadService();
+  constructor(
+    emailRepository?: EmailRepository,
+    threadService?: ThreadService
+  ) {
+    this.emailRepository = emailRepository || new EmailRepository();
+    this.threadService = threadService || new ThreadService();
   }
 
   getEmailById = async (id: number, includeDeleted: boolean = false): Promise<Email> => {
     const email = await this.emailRepository.findById(id, includeDeleted);
 
     if (!email) {
-      throw new Error("Email not Found");
+      throw new NotFoundError("Email not Found");
     }
 
     return email;
@@ -25,11 +29,11 @@ export class EmailService {
 
   createEmail = async (data: CreateEmailDto): Promise<Email> => {
     if (!data.subject || !data.to || !data.content) {
-      throw new Error("Subject, to, and content are required");
+      throw new BadRequestError("Subject, to, and content are required");
     }
 
     if (!data.from) {
-      throw new Error("From is required");
+      throw new BadRequestError("From is required");
     }
 
     const threadId = data.threadId || randomUUID();
@@ -78,11 +82,11 @@ export class EmailService {
     const email = await this.emailRepository.findById(id);
 
     if (!email) {
-      throw new Error("Email not Found");
+      throw new NotFoundError("Email not Found");
     }
 
     if (email.isDeleted) {
-      throw new Error("Cannot update read status of deleted email");
+      throw new BadRequestError("Cannot update read status of deleted email");
     }
 
     return await this.emailRepository.update(id, { isRead });
@@ -92,11 +96,11 @@ export class EmailService {
     const email = await this.emailRepository.findById(id);
 
     if (!email) {
-      throw new Error("Email not Found");
+      throw new NotFoundError("Email not Found");
     }
 
     if (email.isDeleted) {
-      throw new Error("Cannot change importance of deleted email");
+      throw new BadRequestError("Cannot change importance of deleted email");
     }
 
     return await this.emailRepository.update(id, { isImportant });
@@ -106,7 +110,7 @@ export class EmailService {
     const email = await this.emailRepository.findById(id);
 
     if (!email) {
-      throw new Error("Email not Found");
+      throw new NotFoundError("Email not Found");
     }
 
     if (email.isDeleted) {
