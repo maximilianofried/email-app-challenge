@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-
-type FilterType = 'inbox' | 'important' | 'sent' | 'trash';
+import { FilterType } from '@/features/emails/types/email.types';
 
 interface FilterContextType {
   activeFilter: FilterType;
@@ -12,7 +11,7 @@ interface FilterContextType {
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [activeFilter, setActiveFilter] = useState<FilterType>('inbox');
+  const [activeFilter, setActiveFilter] = useState<FilterType>(FilterType.INBOX);
 
   return (
     <FilterContext.Provider value={{ activeFilter, setActiveFilter }}>
@@ -28,4 +27,3 @@ export function useFilter() {
   }
   return context;
 }
-

@@ -1,156 +1,71 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Chip, Typography, Button } from '@mui/material';
-import { Email as EmailIcon, Edit as EditIcon } from '@mui/icons-material';
-import EmailCard from '@/components/EmailCard';
-import EmailContent from '@/components/EmailContent';
+import { Box } from '@mui/material';
 import EmailComposer from '@/components/EmailComposer';
-import SearchBar from '@/components/SearchBar';
 import { Email } from '@/lib/schema';
 import { CreateEmailDto } from '@/features/emails/dtos/emails.dto';
-import { useFilter } from '@/contexts/FilterContext';
+import { useEmailList } from '@/features/emails/hooks/useEmailList';
+import { useEmailSelection } from '@/features/emails/hooks/useEmailSelection';
+import EmailListSidebar from '@/components/EmailListSidebar';
+import EmailDetailPanel from '@/components/EmailDetailPanel';
+import { FilterType } from '@/features/emails/types/email.types';
 
 interface ClientPageProps {
   emails: Email[];
 }
 
-type FilterType = 'inbox' | 'important' | 'sent' | 'trash';
-
 export default function ClientPage(props: ClientPageProps) {
   const { emails: initialEmailList } = props;
   const router = useRouter();
-  const { activeFilter } = useFilter();
-  const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null);
-  const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
-  const [threadEmails, setThreadEmails] = useState<Email[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // 1. Init Hooks
+  const list = useEmailList(initialEmailList);
+  const selection = useEmailSelection();
   const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const [displayedEmails, setDisplayedEmails] = useState<Email[]>(initialEmailList);
-  const [isSearching, setIsSearching] = useState(false);
 
-  const unreadCount = displayedEmails.filter(email => !email.isRead).length;
-  const importantCount = displayedEmails.filter(email => email.isImportant).length;
+  // 2. Derived State (Stats)
+  const unreadCount = list.emails.filter(email => !email.isRead).length;
+  const importantCount = list.emails.filter(email => email.isImportant).length;
 
-  const fetchEmailsByFilter = useCallback(async (filter: FilterType, searchTerm?: string) => {
-    // Only show searching state for search queries, not filter changes
-    if (searchTerm && searchTerm.trim()) {
-      setIsSearching(true);
-    }
-    try {
-      let url = '/api/emails?';
-
-      if (searchTerm && searchTerm.trim()) {
-        url += `search=${encodeURIComponent(searchTerm.trim())}`;
-      } else {
-        if (filter === 'inbox') {
-          url += 'threaded=true&direction=incoming';
-        } else if (filter === 'important') {
-          url += 'important=true';
-        } else if (filter === 'sent') {
-          url += 'direction=outgoing';
-        } else if (filter === 'trash') {
-          url += 'deleted=true';
-        } else {
-          url += 'threaded=true';
-        }
-      }
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch emails');
-      }
-      const emails = await response.json();
-      setDisplayedEmails(emails);
-    } catch (error) {
-      console.error('Error fetching emails:', error);
-      setDisplayedEmails(initialEmailList);
-    } finally {
-      setIsSearching(false);
-    }
-  }, [initialEmailList]);
-
-
+  // Clear selection when filter changes
   useEffect(() => {
-    fetchEmailsByFilter(activeFilter);
-    // Clear selection when filter changes
-    setSelectedEmailId(null);
-    setSelectedEmail(null);
-    setThreadEmails([]);
-  }, [activeFilter, fetchEmailsByFilter]);
+    selection.clearSelection();
+  }, [list.activeFilter, selection.clearSelection]);
 
-  const handleSearchChange = useCallback(async (searchTerm: string) => {
-    if (!searchTerm.trim()) {
-      fetchEmailsByFilter(activeFilter);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const response = await fetch(`/api/emails?search=${encodeURIComponent(searchTerm.trim())}`);
-      if (!response.ok) {
-        throw new Error('Failed to search emails');
-      }
-      const emails = await response.json();
-      setDisplayedEmails(emails);
-    } catch (error) {
-      console.error('Error searching emails:', error);
-      setDisplayedEmails(initialEmailList);
-    } finally {
-      setIsSearching(false);
-    }
-  }, [activeFilter, fetchEmailsByFilter, initialEmailList]);
-
+  // 3. Handlers
   const handleEmailClick = async (emailId: number) => {
-    if (selectedEmailId === emailId && selectedEmail) {
+    // If already selected, do nothing
+    if (selection.selectedEmailId === emailId && selection.selectedEmail) {
       return;
     }
 
-    setSelectedEmailId(emailId);
-    setIsLoading(true);
+    const data = await selection.selectEmail(emailId);
 
-    try {
-      const response = await fetch(`/api/emails/${emailId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch email');
-      }
-      const data = await response.json();
-      setSelectedEmail(data.email);
-      setThreadEmails(data.thread || []);
+    if (data) {
+       // Mark entire thread as read if any email in the thread is unread
+       const hasUnreadEmails = data.thread?.some((email: Email) => !email.isRead) || !data.email.isRead;
 
-      // Mark entire thread as read if any email in the thread is unread
-      const hasUnreadEmails = data.thread?.some((email: Email) => !email.isRead) || !data.email.isRead;
-      if (hasUnreadEmails) {
-        await fetch(`/api/emails/${emailId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ markThreadAsRead: true }),
-        });
+       if (hasUnreadEmails) {
+         try {
+            await fetch(`/api/emails/${emailId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ markThreadAsRead: true }),
+            });
 
-        // Update the displayed emails list to reflect the read status for all emails in the thread
-        const threadIds = new Set([data.email.threadId]);
-        setDisplayedEmails(prevEmails =>
-          prevEmails.map(email =>
-            threadIds.has(email.threadId) ? { ...email, isRead: true } : email
-          )
-        );
+            // Update List (optimistic)
+            list.updateThread(data.email.threadId, { isRead: true });
 
-        // Update thread emails to reflect read status
-        setThreadEmails(prevThread =>
-          prevThread.map(email => ({ ...email, isRead: true }))
-        );
+            // Update Selection (optimistic)
+            selection.updateThreadEmails(prev => prev.map(e => ({ ...e, isRead: true })));
+            selection.updateSelectedEmail({ isRead: true });
 
-        // Update selected email to reflect read status
-        setSelectedEmail(prevEmail => prevEmail ? { ...prevEmail, isRead: true } : null);
-      }
-    } catch (error) {
-      console.error('Error fetching email:', error);
-      setSelectedEmail(null);
-    } finally {
-      setIsLoading(false);
+         } catch (e) {
+             console.error("Error marking read", e);
+         }
+       }
     }
   };
 
@@ -171,9 +86,8 @@ export default function ClientPage(props: ClientPageProps) {
     router.refresh();
   };
 
-  const handleDeleteEmail = async (emailId: number) => {
+  const handleDeleteThread = async (emailId: number) => {
     try {
-      // Delete entire thread when called from EmailCard
       const response = await fetch(`/api/emails/${emailId}?thread=true`, {
         method: 'DELETE',
       });
@@ -182,24 +96,19 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to delete thread');
       }
 
-      // Get the threadId of the deleted email to remove all emails from that thread
-      const emailToDelete = displayedEmails.find(email => email.id === emailId);
+      const emailToDelete = list.emails.find(email => email.id === emailId);
       if (emailToDelete) {
-        // Remove all emails from the same thread
-        setDisplayedEmails(prevEmails =>
-          prevEmails.filter(email => email.threadId !== emailToDelete.threadId)
-        );
+        // Remove from list
+        list.removeThread(emailToDelete.threadId);
 
-        // If any email from the deleted thread was selected, clear the selection
-        if (selectedEmail && selectedEmail.threadId === emailToDelete.threadId) {
-          setSelectedEmailId(null);
-          setSelectedEmail(null);
-          setThreadEmails([]);
+        // Clear selection if it was the deleted thread
+        if (selection.selectedEmail && selection.selectedEmail.threadId === emailToDelete.threadId) {
+          selection.clearSelection();
         }
       }
 
-      // Refresh the email list based on current filter
-      fetchEmailsByFilter(activeFilter);
+      // Refresh list to be sure
+      list.refreshList();
     } catch (error) {
       console.error('Error deleting thread:', error);
     }
@@ -207,7 +116,6 @@ export default function ClientPage(props: ClientPageProps) {
 
   const handleDeleteSingleEmail = async (emailId: number) => {
     try {
-      // Delete only the specific email when called from EmailContent
       const response = await fetch(`/api/emails/${emailId}`, {
         method: 'DELETE',
       });
@@ -216,28 +124,20 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to delete email');
       }
 
-      // Remove deleted email from displayed list
-      setDisplayedEmails(prevEmails => prevEmails.filter(email => email.id !== emailId));
+      // Remove from list
+      list.removeEmail(emailId);
 
-      // Remove from thread emails if it's in the thread view
-      setThreadEmails(prevThread => prevThread.filter(email => email.id !== emailId));
+      // Remove from selection thread
+      selection.updateThreadEmails(prev => prev.filter(e => e.id !== emailId));
 
-      // If the deleted email was selected, clear the selection
-      if (selectedEmailId === emailId) {
-        setSelectedEmailId(null);
-        setSelectedEmail(null);
-        setThreadEmails([]);
-      } else if (selectedEmail) {
-        // Refresh the thread view to reflect the deletion
-        const refreshResponse = await fetch(`/api/emails/${selectedEmailId}`);
-        if (refreshResponse.ok) {
-          const data = await refreshResponse.json();
-          setThreadEmails(data.thread || []);
-        }
+      // If the specific selected email was deleted
+      if (selection.selectedEmailId === emailId) {
+         selection.clearSelection();
+      } else if (selection.selectedEmail) {
+         // Optionally refresh thread data if needed
       }
 
-      // Refresh the email list based on current filter
-      fetchEmailsByFilter(activeFilter);
+      list.refreshList();
     } catch (error) {
       console.error('Error deleting email:', error);
     }
@@ -257,30 +157,22 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to toggle important status');
       }
 
-
-      // If we're in the important view and unmarking as important, refresh the list
-      if (activeFilter === 'important' && !isImportant) {
-        fetchEmailsByFilter(activeFilter);
+      // If we're in the important view and unmarking, refresh
+      if (list.activeFilter === FilterType.IMPORTANT && !isImportant) {
+        list.refreshList();
       } else {
-        // Update displayed emails list
-        setDisplayedEmails(prevEmails =>
-          prevEmails.map(email =>
-            email.id === emailId ? { ...email, isImportant } : email
-          )
-        );
+        // Update list
+        list.updateEmail(emailId, { isImportant });
       }
 
-      // Update selected email if it's the one being toggled
-      if (selectedEmailId === emailId) {
-        setSelectedEmail(prevEmail => prevEmail ? { ...prevEmail, isImportant } : null);
+      // Update selection if needed
+      if (selection.selectedEmailId === emailId) {
+        selection.updateSelectedEmail({ isImportant });
       }
 
-      // Update thread emails if the email is in the thread view
-      setThreadEmails(prevThread =>
-        prevThread.map(email =>
-          email.id === emailId ? { ...email, isImportant } : email
-        )
-      );
+      // Update thread in selection
+      selection.updateThreadEmails(prev => prev.map(e => e.id === emailId ? { ...e, isImportant } : e));
+
     } catch (error) {
       console.error('Error toggling important status:', error);
     }
@@ -288,127 +180,28 @@ export default function ClientPage(props: ClientPageProps) {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      {/* Left Panel - Email List */}
-      <Box sx={{
-        width: '400px',
-        borderRight: '1px solid',
-        borderRightColor: 'divider',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'background.paper',
-      }}>
-        {/* Header */}
-        <Box sx={{ p: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              {activeFilter === 'inbox' ? 'Inbox' : activeFilter === 'important' ? 'Important' : activeFilter === 'sent' ? 'Sent' : 'Trash'}
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<EditIcon />}
-              onClick={() => setIsComposerOpen(true)}
-              size="small"
-            >
-              Compose
-            </Button>
-          </Box>
+      <EmailListSidebar
+        emails={list.emails}
+        isSearching={list.isSearching}
+        activeFilter={list.activeFilter}
+        stats={{ unread: unreadCount, important: importantCount }}
+        onSearch={list.handleSearch}
+        onSelect={handleEmailClick}
+        onCompose={() => setIsComposerOpen(true)}
+        onDelete={handleDeleteThread}
+        onToggleImportant={handleToggleImportant}
+      />
 
-          {/* Stats */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Chip
-              label={`${displayedEmails.length} Total`}
-              size="small"
-              color="primary"
-              variant="outlined"
-            />
-            <Chip
-              label={`${unreadCount} Unread`}
-              size="small"
-              color="warning"
-              variant="outlined"
-            />
-            {activeFilter !== 'important' && (
-              <Chip
-                label={`${importantCount} Important`}
-                size="small"
-                color="secondary"
-                variant="outlined"
-              />
-            )}
-          </Box>
-        </Box>
+      <EmailDetailPanel
+        email={selection.selectedEmail}
+        thread={selection.threadEmails}
+        isLoading={selection.isLoading}
+        selectedEmailId={selection.selectedEmailId}
+        isInTrash={list.activeFilter === FilterType.TRASH}
+        onDelete={handleDeleteSingleEmail}
+        onToggleImportant={handleToggleImportant}
+      />
 
-        {/* Search Bar */}
-        <SearchBar onSearchChange={handleSearchChange} />
-
-        {/* Email List - Scrollable */}
-        <Box sx={{
-          flex: 1,
-          overflow: 'auto',
-          p: 1,
-        }} data-testid="email-list">
-          {isSearching && displayedEmails.length === 0 ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-              <Typography color="text.secondary">Searching...</Typography>
-            </Box>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {displayedEmails.map((email) => (
-                <EmailCard
-                  key={email.id}
-                  email={email}
-                  onClick={() => handleEmailClick(email.id)}
-                  onDelete={handleDeleteEmail}
-                  onToggleImportant={handleToggleImportant}
-                  isInTrash={activeFilter === 'trash'}
-                />
-              ))}
-            </Box>
-          )}
-        </Box>
-      </Box>
-
-      {/* Right Panel - Email Content */}
-      <Box sx={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'background.default',
-        overflow: 'hidden',
-      }} data-testid="email-content-panel">
-        {isLoading ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <Typography color="text.secondary">Loading...</Typography>
-          </Box>
-        ) : selectedEmail ? (
-          <EmailContent
-            email={selectedEmail}
-            threadEmails={threadEmails}
-            selectedEmailId={selectedEmailId}
-            onDelete={handleDeleteSingleEmail}
-            onToggleImportant={handleToggleImportant}
-            isInTrash={activeFilter === 'trash'}
-          />
-        ) : (
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            p: 4,
-          }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <EmailIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}/>
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-                Select an email to view
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Choose an email from the list to see its content here
-              </Typography>
-            </Box>
-          </Box>
-        )}
-      </Box>
       <EmailComposer
         open={isComposerOpen}
         onClose={() => setIsComposerOpen(false)}

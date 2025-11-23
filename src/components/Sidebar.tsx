@@ -5,8 +5,7 @@ import InboxIcon from '@mui/icons-material/Inbox';
 import StarIcon from '@mui/icons-material/Star';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
-
-type FilterType = 'inbox' | 'important' | 'sent' | 'trash';
+import { FilterType } from '@/features/emails/types/email.types';
 
 interface SidebarProps {
   activeFilter: FilterType;
@@ -49,9 +48,9 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
             sx={{
               borderRadius: 2,
               mb: 0.5,
-              backgroundColor: activeFilter === 'inbox' ? 'action.selected' : 'transparent',
+              backgroundColor: activeFilter === FilterType.INBOX ? 'action.selected' : 'transparent',
             }}
-            onClick={() => onFilterChange('inbox')}
+            onClick={() => onFilterChange(FilterType.INBOX)}
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <InboxIcon fontSize="small" />
@@ -66,9 +65,9 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
             sx={{
               borderRadius: 2,
               mb: 0.5,
-              backgroundColor: activeFilter === 'important' ? 'action.selected' : 'transparent',
+              backgroundColor: activeFilter === FilterType.IMPORTANT ? 'action.selected' : 'transparent',
             }}
-            onClick={() => onFilterChange('important')}
+            onClick={() => onFilterChange(FilterType.IMPORTANT)}
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <StarIcon fontSize="small" />
@@ -83,9 +82,9 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
             sx={{
               borderRadius: 2,
               mb: 0.5,
-              backgroundColor: activeFilter === 'sent' ? 'action.selected' : 'transparent',
+              backgroundColor: activeFilter === FilterType.SENT ? 'action.selected' : 'transparent',
             }}
-            onClick={() => onFilterChange('sent')}
+            onClick={() => onFilterChange(FilterType.SENT)}
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <SendIcon fontSize="small" />
@@ -102,9 +101,9 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
             sx={{
               borderRadius: 2,
               mb: 0.5,
-              backgroundColor: activeFilter === 'trash' ? 'action.selected' : 'transparent',
+              backgroundColor: activeFilter === FilterType.TRASH ? 'action.selected' : 'transparent',
             }}
-            onClick={() => onFilterChange('trash')}
+            onClick={() => onFilterChange(FilterType.TRASH)}
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <DeleteIcon fontSize="small" />
@@ -119,4 +118,3 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
     </Paper>
   );
 }
-

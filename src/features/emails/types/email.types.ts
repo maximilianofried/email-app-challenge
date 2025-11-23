@@ -17,3 +17,9 @@ export interface EmailComposerFormData {
 
 export type EmailComposerFormErrors = Partial<Record<keyof EmailComposerFormData, string>>;
 
+export enum FilterType {
+  INBOX = 'inbox',
+  IMPORTANT = 'important',
+  SENT = 'sent',
+  TRASH = 'trash'
+}
