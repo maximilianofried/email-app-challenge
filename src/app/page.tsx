@@ -1,13 +1,11 @@
-import React from 'react';
-import ClientPage from '@/app/client-page';
-import { EmailService } from '@/features/emails/services/email.service';
+import ClientPage from "./client-page";
+import { ThreadService } from "@/features/threads/services/thread.service";
 
 export default async function Home() {
-  const emailService = new EmailService();
-  const emailListDef = await emailService.getThreadedEmails();
+  const threadService = new ThreadService();
+  const emailListDef = await threadService.getThreadedEmails();
 
   return (
     <ClientPage emails={emailListDef} />
   );
 }
-
