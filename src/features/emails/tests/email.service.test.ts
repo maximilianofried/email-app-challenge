@@ -11,7 +11,7 @@ const mockEmailRepository = {
   findAll: jest.fn(),
   search: jest.fn(),
   findByDirection: jest.fn(),
-  findByImportant: jest.fn(),
+  findImportant: jest.fn(),
   update: jest.fn(),
   delete: jest.fn(),
   findDeleted: jest.fn(),

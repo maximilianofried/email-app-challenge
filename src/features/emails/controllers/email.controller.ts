@@ -19,6 +19,46 @@ export class EmailController {
     this.threadService = new ThreadService();
   }
 
+  /**
+   * Helper: Resolve which service method to call based on filter criteria.
+   * This centralizes the routing logic and makes it testable.
+   *
+   * Filter priority:
+   * 1. Deleted (Trash folder)
+   * 2. Search (text query across all fields)
+   * 3. Important (starred/flagged emails)
+   * 4. Threaded (grouped by conversation)
+   * 5. Direction (incoming/outgoing)
+   * 6. Default (all emails)
+   */
+  private resolveEmailQuery(filters: ReturnType<typeof emailListFiltersSchema.parse>) {
+    if (filters.deleted) {
+      return () => this.emailService.getDeletedEmails();
+    }
+
+    if (filters.search?.trim()) {
+      return () => this.emailService.searchEmails(filters.search!.trim());
+    }
+
+    if (filters.important) {
+      return () => this.emailService.getImportantEmails();
+    }
+
+    if (filters.threaded) {
+      return () => this.emailService.getThreadedEmails(
+        filters.direction,
+        filters.limit,
+        filters.cursor,
+      );
+    }
+
+    if (filters.direction) {
+      return () => this.emailService.getEmailsByDirection(filters.direction!);
+    }
+
+    return () => this.emailService.getAllEmails();
+  }
+
   findById = async (
     request: NextRequest,
     id: string,
@@ -67,7 +107,9 @@ export class EmailController {
 
       const filters = validateInput(emailListFiltersSchema, rawFilters);
 
-      const emails = await this.emailService.getEmailsByFilters(filters);
+      // Resolve which query to execute based on filters
+      const queryMethod = this.resolveEmailQuery(filters);
+      const emails = await queryMethod();
 
       return NextResponse.json(emails, { status: 200 });
     } catch (error) {

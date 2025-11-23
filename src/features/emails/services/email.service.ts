@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { EmailRepository } from '../repositories/email.repository';
 import { ThreadService } from '@/features/threads/services/thread.service';
 import { Email, EmailDirection, EmailData } from '@/lib/schema';
-import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from '@/lib/dtos/emails.dto';
+import { CreateEmailDto, EmailWithThreadDto } from '@/lib/dtos/emails.dto';
 import { NotFoundError, BadRequestError } from '@/lib/errors';
 import { ERROR_MESSAGES } from '@/lib/constants';
 
@@ -56,27 +56,50 @@ export class EmailService {
     return await this.emailRepository.create(emailData);
   };
 
+  /**
+   * Get all non-deleted emails
+   */
   getAllEmails = async (): Promise<Email[]> => {
     return await this.emailRepository.findAll();
   };
 
+  /**
+   * Get deleted emails only (Trash folder)
+   */
+  getDeletedEmails = async (): Promise<Email[]> => {
+    return await this.emailRepository.findDeleted();
+  };
+
+  /**
+   * Search emails by text query
+   */
   searchEmails = async (query: string): Promise<Email[]> => {
     return await this.emailRepository.search(query);
   };
 
-  getEmailsByFilter = async (filter: {
-    direction?: EmailDirection;
-    isImportant?: boolean;
-  }): Promise<Email[]> => {
-    if (filter.direction !== undefined) {
-      return await this.emailRepository.findByDirection(filter.direction);
-    }
+  /**
+   * Get emails filtered by direction (incoming/outgoing)
+   */
+  getEmailsByDirection = async (direction: EmailDirection): Promise<Email[]> => {
+    return await this.emailRepository.findByDirection(direction);
+  };
 
-    if (filter.isImportant !== undefined) {
-      return await this.emailRepository.findByImportant(filter.isImportant);
-    }
+  /**
+   * Get important emails only
+   */
+  getImportantEmails = async (): Promise<Email[]> => {
+    return this.emailRepository.findImportant();
+  };
 
-    return await this.emailRepository.findAll();
+  /**
+   * Get threaded emails (latest per thread)
+   */
+  getThreadedEmails = async (
+    direction?: EmailDirection,
+    limit?: number,
+    cursor?: number,
+  ): Promise<Email[]> => {
+    return await this.threadService.getThreadedEmails(direction, limit, cursor);
   };
 
   updateReadStatus = async (id: number, isRead: boolean): Promise<Email> => {
@@ -122,10 +145,6 @@ export class EmailService {
     await this.emailRepository.delete(id);
   };
 
-  getDeletedEmails = async (): Promise<Email[]> => {
-    return await this.emailRepository.findDeleted();
-  };
-
   getEmailWithThread = async (id: number): Promise<EmailWithThreadDto> => {
     const email = await this.getEmailById(id, true);
 
@@ -142,39 +161,5 @@ export class EmailService {
       email,
       thread: threadEmails,
     };
-  };
-
-  getEmailsByFilters = async (filters: EmailListFiltersDto): Promise<Email[]> => {
-    // Handle deleted emails filter
-    if (filters.deleted) {
-      return await this.getDeletedEmails();
-    }
-
-    // Handle search filter (takes priority over other filters)
-    if (filters.search && filters.search.trim()) {
-      return await this.searchEmails(filters.search.trim());
-    }
-
-    // Handle important filter
-    if (filters.important !== undefined) {
-      const filter = { isImportant: filters.important };
-      return await this.getEmailsByFilter(filter);
-    }
-
-    // Handle threaded view with optional direction filter
-    if (filters.threaded) {
-      if (filters.direction) {
-        return await this.threadService.getThreadedEmails(filters.direction, filters.limit, filters.cursor);
-      }
-      return await this.threadService.getThreadedEmails(undefined, filters.limit, filters.cursor);
-    }
-
-    // Handle direction filter
-    if (filters.direction) {
-      return await this.getEmailsByFilter({ direction: filters.direction });
-    }
-
-    // Default: return all emails
-    return await this.getAllEmails();
   };
 }

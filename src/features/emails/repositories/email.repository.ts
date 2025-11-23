@@ -60,11 +60,11 @@ export class EmailRepository {
       .orderBy(desc(emails.createdAt));
   };
 
-  findByImportant = async (isImportant: boolean): Promise<Email[]> => {
+  findImportant = async (): Promise<Email[]> => {
     return await db
       .select()
       .from(emails)
-      .where(and(eq(emails.isImportant, isImportant), eq(emails.isDeleted, false)))
+      .where(and(eq(emails.isImportant, true), eq(emails.isDeleted, false)))
       .orderBy(desc(emails.createdAt));
   };
 
