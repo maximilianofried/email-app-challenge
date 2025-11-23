@@ -4,6 +4,7 @@ import { ThreadService } from "@/features/threads/services/thread.service";
 import { Email, EmailDirection, EmailData } from "@/lib/schema";
 import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from "@/lib/dtos/emails.dto";
 import { NotFoundError, BadRequestError } from "@/lib/errors";
+import { ERROR_MESSAGES } from "@/lib/constants";
 
 export class EmailService {
   private emailRepository: EmailRepository;
@@ -21,7 +22,7 @@ export class EmailService {
     const email = await this.emailRepository.findById(id, includeDeleted);
 
     if (!email) {
-      throw new NotFoundError("Email not Found");
+      throw new NotFoundError(ERROR_MESSAGES.EMAIL_NOT_FOUND);
     }
 
     return email;
@@ -29,11 +30,11 @@ export class EmailService {
 
   createEmail = async (data: CreateEmailDto): Promise<Email> => {
     if (!data.subject || !data.to || !data.content) {
-      throw new BadRequestError("Subject, to, and content are required");
+      throw new BadRequestError(ERROR_MESSAGES.REQUIRED_FIELDS);
     }
 
     if (!data.from) {
-      throw new BadRequestError("From is required");
+      throw new BadRequestError(ERROR_MESSAGES.FROM_REQUIRED);
     }
 
     const threadId = data.threadId || randomUUID();
@@ -82,11 +83,11 @@ export class EmailService {
     const email = await this.emailRepository.findById(id);
 
     if (!email) {
-      throw new NotFoundError("Email not Found");
+      throw new NotFoundError(ERROR_MESSAGES.EMAIL_NOT_FOUND);
     }
 
     if (email.isDeleted) {
-      throw new BadRequestError("Cannot update read status of deleted email");
+      throw new BadRequestError(ERROR_MESSAGES.UPDATE_READ_DELETED);
     }
 
     return await this.emailRepository.update(id, { isRead });
@@ -96,11 +97,11 @@ export class EmailService {
     const email = await this.emailRepository.findById(id);
 
     if (!email) {
-      throw new NotFoundError("Email not Found");
+      throw new NotFoundError(ERROR_MESSAGES.EMAIL_NOT_FOUND);
     }
 
     if (email.isDeleted) {
-      throw new BadRequestError("Cannot change importance of deleted email");
+      throw new BadRequestError(ERROR_MESSAGES.CHANGE_IMPORTANCE_DELETED);
     }
 
     return await this.emailRepository.update(id, { isImportant });
@@ -110,7 +111,7 @@ export class EmailService {
     const email = await this.emailRepository.findById(id);
 
     if (!email) {
-      throw new NotFoundError("Email not Found");
+      throw new NotFoundError(ERROR_MESSAGES.EMAIL_NOT_FOUND);
     }
 
     if (email.isDeleted) {

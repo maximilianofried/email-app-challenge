@@ -8,6 +8,7 @@ import {
   validateInput
 } from "@/lib/dtos/emails.dto";
 import { handleApiError, BadRequestError } from "@/lib/errors";
+import { ERROR_MESSAGES } from "@/lib/constants";
 
 export class EmailController {
   private emailService: EmailService;
@@ -26,7 +27,7 @@ export class EmailController {
       const emailId = parseInt(id, 10);
 
       if (isNaN(emailId) || emailId <= 0) {
-        throw new BadRequestError("Invalid ID");
+        throw new BadRequestError(ERROR_MESSAGES.INVALID_ID);
       }
 
       const email = await this.emailService.getEmailWithThread(emailId);
@@ -82,7 +83,7 @@ export class EmailController {
       const emailId = parseInt(id, 10);
 
       if (isNaN(emailId) || emailId <= 0) {
-        throw new BadRequestError("Invalid ID");
+        throw new BadRequestError(ERROR_MESSAGES.INVALID_ID);
       }
 
       const body = await request.json();
@@ -107,7 +108,7 @@ export class EmailController {
         return NextResponse.json(email, { status: 200 });
       }
 
-      throw new BadRequestError("Invalid update data");
+      throw new BadRequestError(ERROR_MESSAGES.INVALID_UPDATE_DATA);
     } catch (error) {
       return handleApiError(error);
     }
@@ -121,7 +122,7 @@ export class EmailController {
       const emailId = parseInt(id, 10);
 
       if (isNaN(emailId) || emailId <= 0) {
-        throw new BadRequestError("Invalid ID");
+        throw new BadRequestError(ERROR_MESSAGES.INVALID_ID);
       }
 
       const { searchParams } = new URL(request.url);

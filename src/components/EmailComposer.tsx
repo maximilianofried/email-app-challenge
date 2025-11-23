@@ -15,6 +15,7 @@ import {
   EmailComposerFormErrors,
 } from '@/lib/types/email.types';
 import { CreateEmailDto } from '@/lib/dtos/emails.dto';
+import { UI_LABELS, ERROR_MESSAGES } from '@/lib/constants';
 
 const initialFormData: EmailComposerFormData = {
   from: '',
@@ -51,16 +52,16 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
     const newErrors: EmailComposerFormErrors = {};
 
     if (!formData.from.trim()) {
-      newErrors.from = 'From is required';
+      newErrors.from = ERROR_MESSAGES.FROM_REQUIRED;
     }
     if (!formData.subject.trim()) {
-      newErrors.subject = 'Subject is required';
+      newErrors.subject = ERROR_MESSAGES.SUBJECT_REQUIRED;
     }
     if (!formData.to.trim()) {
-      newErrors.to = 'To is required';
+      newErrors.to = ERROR_MESSAGES.TO_REQUIRED;
     }
     if (!formData.content.trim()) {
-      newErrors.content = 'Content is required';
+      newErrors.content = ERROR_MESSAGES.CONTENT_REQUIRED;
     }
 
     setErrors(newErrors);
@@ -102,13 +103,13 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>Compose Email</DialogTitle>
+        <DialogTitle>{UI_LABELS.COMPOSE_EMAIL}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <TextField
               name="from"
               type="email"
-              label="From"
+              label={UI_LABELS.FROM}
               value={formData.from}
               onChange={handleChange('from')}
               error={!!errors.from}
@@ -119,7 +120,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
             <TextField
               name="to"
               type="email"
-              label="To"
+              label={UI_LABELS.TO}
               value={formData.to}
               onChange={handleChange('to')}
               error={!!errors.to}
@@ -130,7 +131,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
             <TextField
               name="cc"
               type="email"
-              label="CC"
+              label={UI_LABELS.CC}
               value={formData.cc}
               onChange={handleChange('cc')}
               error={!!errors.cc}
@@ -140,7 +141,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
             <TextField
               name="bcc"
               type="email"
-              label="BCC"
+              label={UI_LABELS.BCC}
               value={formData.bcc}
               onChange={handleChange('bcc')}
               error={!!errors.bcc}
@@ -149,7 +150,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
             />
             <TextField
               name="subject"
-              label="Subject"
+              label={UI_LABELS.SUBJECT}
               value={formData.subject}
               onChange={handleChange('subject')}
               error={!!errors.subject}
@@ -159,7 +160,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
             />
             <TextField
               name="content"
-              label="Content"
+              label={UI_LABELS.CONTENT}
               value={formData.content}
               onChange={handleChange('content')}
               error={!!errors.content}
@@ -173,10 +174,10 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} disabled={isSubmitting}>
-            Cancel
+            {UI_LABELS.CANCEL}
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Send'}
+            {isSubmitting ? UI_LABELS.SENDING : UI_LABELS.SEND}
           </Button>
         </DialogActions>
       </form>

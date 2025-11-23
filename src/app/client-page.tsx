@@ -11,6 +11,7 @@ import { useEmailSelection } from '@/hooks/emails/useEmailSelection';
 import EmailListSidebar from '@/components/EmailListSidebar';
 import EmailDetailPanel from '@/components/EmailDetailPanel';
 import { FilterType } from '@/lib/types/email.types';
+import { API_ENDPOINTS, API_HEADERS, ERROR_MESSAGES, HTTP_METHODS } from '@/lib/constants';
 
 interface ClientPageProps {
   emails: Email[];
@@ -43,9 +44,9 @@ export default function ClientPage(props: ClientPageProps) {
 
        if (hasUnreadEmails) {
          try {
-            await fetch(`/api/emails/${emailId}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
+            await fetch(`${API_ENDPOINTS.EMAILS}/${emailId}`, {
+              method: HTTP_METHODS.PATCH,
+              headers: API_HEADERS.CONTENT_TYPE_JSON,
               body: JSON.stringify({ markThreadAsRead: true }),
             });
 
@@ -62,17 +63,15 @@ export default function ClientPage(props: ClientPageProps) {
   };
 
   const handleSendEmail = async (data: CreateEmailDto) => {
-    const response = await fetch('/api/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const response = await fetch(API_ENDPOINTS.EMAILS, {
+      method: HTTP_METHODS.POST,
+      headers: API_HEADERS.CONTENT_TYPE_JSON,
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to send email');
+      throw new Error(errorData.error || ERROR_MESSAGES.SEND_EMAIL_FAILED);
     }
 
     router.refresh();
@@ -80,12 +79,12 @@ export default function ClientPage(props: ClientPageProps) {
 
   const handleDeleteThread = async (emailId: number) => {
     try {
-      const response = await fetch(`/api/emails/${emailId}?thread=true`, {
-        method: 'DELETE',
+      const response = await fetch(`${API_ENDPOINTS.EMAILS}/${emailId}?thread=true`, {
+        method: HTTP_METHODS.DELETE,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete thread');
+        throw new Error(ERROR_MESSAGES.DELETE_THREAD_FAILED);
       }
 
       const emailToDelete = list.emails.find(email => email.id === emailId);
@@ -105,12 +104,12 @@ export default function ClientPage(props: ClientPageProps) {
 
   const handleDeleteSingleEmail = async (emailId: number) => {
     try {
-      const response = await fetch(`/api/emails/${emailId}`, {
-        method: 'DELETE',
+      const response = await fetch(`${API_ENDPOINTS.EMAILS}/${emailId}`, {
+        method: HTTP_METHODS.DELETE,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete email');
+        throw new Error(ERROR_MESSAGES.DELETE_EMAIL_FAILED);
       }
 
       list.setEmails(prev => prev.filter(e => e.id !== emailId));
@@ -129,16 +128,14 @@ export default function ClientPage(props: ClientPageProps) {
 
   const handleToggleImportant = async (emailId: number, isImportant: boolean) => {
     try {
-      const response = await fetch(`/api/emails/${emailId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`${API_ENDPOINTS.EMAILS}/${emailId}`, {
+        method: HTTP_METHODS.PATCH,
+        headers: API_HEADERS.CONTENT_TYPE_JSON,
         body: JSON.stringify({ isImportant }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to toggle important status');
+        throw new Error(ERROR_MESSAGES.TOGGLE_IMPORTANT_FAILED);
       }
 
       if (list.activeFilter === FilterType.IMPORTANT && !isImportant) {

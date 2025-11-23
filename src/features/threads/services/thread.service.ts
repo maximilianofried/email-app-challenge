@@ -1,5 +1,6 @@
 import { ThreadRepository } from "../repositories/thread.repository";
 import { Email, EmailDirection } from "@/lib/schema";
+import { ERROR_MESSAGES, CONFIG } from "@/lib/constants";
 
 export class ThreadService {
   private threadRepository: ThreadRepository;
@@ -8,7 +9,7 @@ export class ThreadService {
     this.threadRepository = threadRepository || new ThreadRepository();
   }
 
-  getThreadedEmails = async (direction?: EmailDirection, limit: number = 50, cursor?: number): Promise<Email[]> => {
+  getThreadedEmails = async (direction?: EmailDirection, limit: number = CONFIG.DEFAULT_LIMIT, cursor?: number): Promise<Email[]> => {
     if (direction) {
       return await this.threadRepository.findLatestByThreadAndDirection(direction, limit, cursor);
     }
@@ -47,7 +48,7 @@ export class ThreadService {
       // If no non-deleted emails found, check if thread exists at all (maybe fully deleted)
       const allEmails = await this.threadRepository.findByThreadId(threadId, true, false);
       if (allEmails.length === 0) {
-        throw new Error("Thread not Found");
+        throw new Error(ERROR_MESSAGES.THREAD_NOT_FOUND);
       }
       // If thread exists but all emails are already deleted, consider it a success
       return;

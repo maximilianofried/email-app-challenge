@@ -4,13 +4,14 @@ import SearchBar from '@/components/SearchBar';
 import EmailCard from '@/components/EmailCard';
 import { Email } from '@/lib/schema';
 import { FilterType } from '@/lib/types/email.types';
+import { UI_LABELS } from '@/lib/constants';
 
 interface EmailListSidebarProps {
   emails: Email[];
   isSearching: boolean;
   isLoading?: boolean;
   activeFilter: FilterType;
-  currentFilter?: FilterType; // Added prop to know the filter of the data
+  currentFilter?: FilterType;
   stats: {
     unread: number;
     important: number;
@@ -58,7 +59,7 @@ export default function EmailListSidebar({
       <Box sx={{ p: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
-            {activeFilter === FilterType.INBOX ? 'Inbox' : activeFilter === FilterType.IMPORTANT ? 'Important' : activeFilter === FilterType.SENT ? 'Sent' : 'Trash'}
+            {activeFilter === FilterType.INBOX ? UI_LABELS.INBOX : activeFilter === FilterType.IMPORTANT ? UI_LABELS.IMPORTANT : activeFilter === FilterType.SENT ? UI_LABELS.SENT : UI_LABELS.TRASH}
           </Typography>
           <Button
             variant="contained"
@@ -66,21 +67,21 @@ export default function EmailListSidebar({
             onClick={onCompose}
             size="small"
           >
-            Compose
+            {UI_LABELS.COMPOSE}
           </Button>
         </Box>
 
         {/* Stats */}
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Chip
-            label={`${emails.length} Total`}
+            label={`${emails.length} ${UI_LABELS.TOTAL}`}
             size="small"
             color="primary"
             variant="outlined"
           />
           {!isInTrash && (
             <Chip
-              label={`${stats.unread} Unread`}
+              label={`${stats.unread} ${UI_LABELS.UNREAD}`}
               size="small"
               color="warning"
               variant="outlined"
@@ -88,7 +89,7 @@ export default function EmailListSidebar({
           )}
           {activeFilter !== FilterType.IMPORTANT && !isInTrash && (
             <Chip
-              label={`${stats.important} Important`}
+              label={`${stats.important} ${UI_LABELS.IMPORTANT}`}
               size="small"
               color="secondary"
               variant="outlined"
@@ -109,7 +110,7 @@ export default function EmailListSidebar({
         {(isSearching && emails.length === 0) || (isLoading && emails.length === 0) ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
             <Typography color="text.secondary">
-               {isSearching ? "Searching..." : "Loading..."}
+               {isSearching ? UI_LABELS.SEARCHING : UI_LABELS.LOADING}
             </Typography>
           </Box>
         ) : (
@@ -133,7 +134,7 @@ export default function EmailListSidebar({
                 sx={{ mt: 2, mb: 2 }}
                 variant="text"
               >
-                {isLoadingMore ? 'Loading...' : 'Load More'}
+                {isLoadingMore ? UI_LABELS.LOADING : UI_LABELS.LOAD_MORE}
               </Button>
             )}
           </Box>

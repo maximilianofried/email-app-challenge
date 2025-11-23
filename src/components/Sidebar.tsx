@@ -6,6 +6,7 @@ import StarIcon from '@mui/icons-material/Star';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { FilterType } from '@/lib/types/email.types';
+import { UI_LABELS } from '@/lib/constants';
 
 interface SidebarProps {
   activeFilter: FilterType;
@@ -37,7 +38,7 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
             gap: 1,
           }}
         >
-          📧 Email Client
+          {UI_LABELS.APP_TITLE}
         </Typography>
       </Box>
 
@@ -56,7 +57,7 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
               <InboxIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary="Inbox"
+              primary={UI_LABELS.INBOX}
               primaryTypographyProps={{ fontWeight: 500 }}
             />
           </MenuItem>
@@ -73,7 +74,7 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
               <StarIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary="Important"
+              primary={UI_LABELS.IMPORTANT}
               primaryTypographyProps={{ fontWeight: 500 }}
             />
           </MenuItem>
@@ -90,7 +91,7 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
               <SendIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary="Sent"
+              primary={UI_LABELS.SENT}
               primaryTypographyProps={{ fontWeight: 500 }}
             />
           </MenuItem>
@@ -109,7 +110,7 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
               <DeleteIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary="Trash"
+              primary={UI_LABELS.TRASH}
               primaryTypographyProps={{ fontWeight: 500 }}
             />
           </MenuItem>
