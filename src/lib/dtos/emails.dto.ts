@@ -34,7 +34,7 @@ export const emailListFiltersSchema = z.object({
   limit: z.coerce.number().optional(),
 });
 
-// TypeScript Types (derived from Zod or explicitly defined if needed)
+// TypeScript Types (derived from Zod)
 
 export type CreateEmailDto = z.infer<typeof createEmailSchema>;
 export type UpdateEmailDto = z.infer<typeof updateEmailSchema>;

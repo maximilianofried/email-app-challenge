@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Email } from '@/lib/schema';
 import { useFilter } from '@/contexts/FilterContext';
 import { FilterType } from '@/lib/types/email.types';
+import { CONFIG } from '@/lib/constants';
 
 export function useEmailList(initialEmails: Email[]) {
   const { activeFilter } = useFilter();
@@ -16,7 +17,7 @@ export function useEmailList(initialEmails: Email[]) {
   const currentSearchTerm = useRef<string>("");
 
   const getApiUrl = (filter: FilterType, searchTerm?: string, cursor?: number) => {
-    let url = '/api/emails?limit=20'; // Set page size to 20
+    let url = `/api/emails?limit=${CONFIG.DEFAULT_LIMIT}`;
 
     if (searchTerm && searchTerm.trim()) {
       url += `&search=${encodeURIComponent(searchTerm.trim())}`;
@@ -62,7 +63,7 @@ export function useEmailList(initialEmails: Email[]) {
 
       const data = await response.json();
       setEmails(data);
-      setHasMore(data.length === 20); // If we got full page, likely more exist
+      setHasMore(data.length === CONFIG.DEFAULT_LIMIT);
       setEmailsFilter(filter);
     } catch (error) {
       console.error('Error fetching emails:', error);
@@ -93,7 +94,7 @@ export function useEmailList(initialEmails: Email[]) {
       
       if (data.length > 0) {
         setEmails(prev => [...prev, ...data]);
-        setHasMore(data.length === 20);
+        setHasMore(data.length === CONFIG.DEFAULT_LIMIT);
       } else {
         setHasMore(false);
       }
