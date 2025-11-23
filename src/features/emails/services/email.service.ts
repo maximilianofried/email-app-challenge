@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { EmailRepository } from "../repositories/email.repository";
 import { ThreadService } from "@/features/threads/services/thread.service";
 import { Email, EmailDirection, EmailData } from "@/lib/schema";
-import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from "../dtos/emails.dto";
+import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from "@/lib/dtos/emails.dto";
 
 export class EmailService {
   private emailRepository: EmailRepository;

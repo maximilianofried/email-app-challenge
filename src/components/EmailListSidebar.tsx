@@ -3,7 +3,7 @@ import { Edit as EditIcon } from '@mui/icons-material';
 import SearchBar from '@/components/SearchBar';
 import EmailCard from '@/components/EmailCard';
 import { Email } from '@/lib/schema';
-import { FilterType } from '@/features/emails/types/email.types';
+import { FilterType } from '@/lib/types/email.types';
 
 interface EmailListSidebarProps {
   emails: Email[];

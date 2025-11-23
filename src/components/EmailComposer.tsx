@@ -13,8 +13,8 @@ import {
   EmailComposerProps,
   EmailComposerFormData,
   EmailComposerFormErrors,
-} from '@/features/emails/types/email.types';
-import { CreateEmailDto } from '@/features/emails/dtos/emails.dto';
+} from '@/lib/types/email.types';
+import { CreateEmailDto } from '@/lib/dtos/emails.dto';
 
 const initialFormData: EmailComposerFormData = {
   from: '',

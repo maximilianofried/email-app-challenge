@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Box } from '@mui/material';
 import EmailComposer from '@/components/EmailComposer';
 import { Email } from '@/lib/schema';
-import { CreateEmailDto } from '@/features/emails/dtos/emails.dto';
-import { useEmailList } from '@/features/emails/hooks/useEmailList';
-import { useEmailSelection } from '@/features/emails/hooks/useEmailSelection';
+import { CreateEmailDto } from '@/lib/dtos/emails.dto';
+import { useEmailList } from '@/hooks/emails/useEmailList';
+import { useEmailSelection } from '@/hooks/emails/useEmailSelection';
 import EmailListSidebar from '@/components/EmailListSidebar';
 import EmailDetailPanel from '@/components/EmailDetailPanel';
-import { FilterType } from '@/features/emails/types/email.types';
+import { FilterType } from '@/lib/types/email.types';
 
 interface ClientPageProps {
   emails: Email[];

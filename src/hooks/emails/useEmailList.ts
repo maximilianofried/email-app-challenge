@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Email } from '@/lib/schema';
 import { useFilter } from '@/contexts/FilterContext';
-import { FilterType } from '../types/email.types';
+import { FilterType } from '@/lib/types/email.types';
 
 export function useEmailList(initialEmails: Email[]) {
   const { activeFilter } = useFilter();

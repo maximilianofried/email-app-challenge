@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { FilterType } from '@/features/emails/types/email.types';
+import { FilterType } from '@/lib/types/email.types';
 
 interface FilterContextType {
   activeFilter: FilterType;

@@ -45,4 +45,5 @@ Thumbs.db
 # Temporary files
 *.swp
 *.swo
+*.swc
 *~

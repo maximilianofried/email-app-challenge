@@ -6,7 +6,7 @@ import {
   updateEmailSchema,
   emailListFiltersSchema,
   validateInput
-} from "../dtos/emails.dto";
+} from "@/lib/dtos/emails.dto";
 
 export class EmailController {
   private emailService: EmailService;

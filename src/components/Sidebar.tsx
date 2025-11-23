@@ -5,7 +5,7 @@ import InboxIcon from '@mui/icons-material/Inbox';
 import StarIcon from '@mui/icons-material/Star';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { FilterType } from '@/features/emails/types/email.types';
+import { FilterType } from '@/lib/types/email.types';
 
 interface SidebarProps {
   activeFilter: FilterType;
