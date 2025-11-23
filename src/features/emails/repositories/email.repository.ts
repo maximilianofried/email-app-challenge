@@ -1,6 +1,6 @@
-import { db } from "@/lib/database";
-import { emails, Email, EmailData, EmailDirection } from "@/lib/schema";
-import { eq, desc, like, or, and } from "drizzle-orm";
+import { db } from '@/lib/database';
+import { emails, Email, EmailData, EmailDirection } from '@/lib/schema';
+import { eq, desc, like, or, and } from 'drizzle-orm';
 
 export class EmailRepository {
   findById = async (id: number, includeDeleted: boolean = false): Promise<Email | undefined> => {
@@ -45,9 +45,9 @@ export class EmailRepository {
             like(emails.to, searchPattern),
             like(emails.cc, searchPattern),
             like(emails.bcc, searchPattern),
-            like(emails.content, searchPattern)
-          )
-        )
+            like(emails.content, searchPattern),
+          ),
+        ),
       )
       .orderBy(desc(emails.createdAt));
   };

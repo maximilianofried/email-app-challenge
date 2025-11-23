@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -8,9 +8,9 @@ import {
   Paper,
   IconButton,
   Tooltip,
-} from "@mui/material";
-import { Star, StarBorder, Delete } from "@mui/icons-material";
-import { Email } from "@/lib/schema";
+} from '@mui/material';
+import { Star, StarBorder, Delete } from '@mui/icons-material';
+import { Email } from '@/lib/schema';
 
 interface EmailContentProps {
   email: Email;
@@ -31,23 +31,16 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
   }, [selectedEmailId, threadEmails]);
 
   const getInitials = (name: string) => {
-    return name.split("@")[0].substring(0, 2).toUpperCase();
+    return name.split('@')[0].substring(0, 2).toUpperCase();
   };
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString('en-US', {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleString('en-US', {
-      hour: "2-digit",
-      minute: "2-digit",
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -63,25 +56,25 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
           p: 2,
           mb: 2,
           border: isSelected ? 2 : 0,
-          borderColor: isSelected ? "primary.main" : "transparent",
-          backgroundColor: isSelected ? "action.selected" : "background.paper",
+          borderColor: isSelected ? 'primary.main' : 'transparent',
+          backgroundColor: isSelected ? 'action.selected' : 'background.paper',
         }}
         id={`email-${threadEmail.id}`}
       >
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 2 }}>
-            <Avatar
-              sx={{
-                bgcolor: (threadEmail.isImportant && !isInTrash) ? "warning.main" : "primary.main",
-                width: 40,
-                height: 40,
-                fontSize: "1rem",
-                fontWeight: 600,
-              }}
-            >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+          <Avatar
+            sx={{
+              bgcolor: (threadEmail.isImportant && !isInTrash) ? 'warning.main' : 'primary.main',
+              width: 40,
+              height: 40,
+              fontSize: '1rem',
+              fontWeight: 600,
+            }}
+          >
             {getInitials(threadEmail.from)}
           </Avatar>
           <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                   {threadEmail.from}
@@ -90,12 +83,12 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                   to {threadEmail.to}
                 </Typography>
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant="caption" color="text.secondary">
                   {formatDate(threadEmail.createdAt)}
                 </Typography>
                 {onToggleImportant && !isInTrash && (
-                  <Tooltip title={threadEmail.isImportant ? "Mark as not important" : "Mark as important"}>
+                  <Tooltip title={threadEmail.isImportant ? 'Mark as not important' : 'Mark as important'}>
                     <IconButton
                       size="small"
                       onClick={() => onToggleImportant(threadEmail.id, !threadEmail.isImportant)}
@@ -106,7 +99,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                           color: 'warning.main',
                         },
                       }}
-                      aria-label={threadEmail.isImportant ? "Mark as not important" : "Mark as important"}
+                      aria-label={threadEmail.isImportant ? 'Mark as not important' : 'Mark as important'}
                     >
                       {threadEmail.isImportant ? (
                         <Star sx={{ fontSize: '1rem', color: 'warning.main' }} />
@@ -136,7 +129,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                 )}
               </Box>
             </Box>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
               {!threadEmail.isRead && !isInTrash && (
                 <Chip label="Unread" size="small" color="warning" variant="outlined" />
               )}
@@ -152,12 +145,12 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
         <Typography
           variant="body2"
           sx={{
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
             lineHeight: 1.6,
           }}
         >
-          {threadEmail.content || "No content"}
+          {threadEmail.content || 'No content'}
         </Typography>
       </Paper>
     );
@@ -166,7 +159,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
   const displayThread = threadEmails.length > 0;
 
   return (
-    <Box sx={{ p: 3, height: "100%", overflow: "auto" }}>
+    <Box sx={{ p: 3, height: '100%', overflow: 'auto' }}>
       {displayThread ? (
         <Box>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
@@ -177,26 +170,26 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
         </Box>
       ) : (
         <Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
             <Avatar
               sx={{
-                bgcolor: (email.isImportant && !isInTrash) ? "warning.main" : "primary.main",
+                bgcolor: (email.isImportant && !isInTrash) ? 'warning.main' : 'primary.main',
                 width: 48,
                 height: 48,
-                fontSize: "1.25rem",
+                fontSize: '1.25rem',
                 fontWeight: 600,
               }}
             >
               {getInitials(email.from)}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="h5" sx={{ fontWeight: 600 }}>
                     {email.subject}
                   </Typography>
                   {onToggleImportant && !isInTrash && (
-                    <Tooltip title={email.isImportant ? "Mark as not important" : "Mark as important"}>
+                    <Tooltip title={email.isImportant ? 'Mark as not important' : 'Mark as important'}>
                       <IconButton
                         onClick={() => onToggleImportant(email.id, !email.isImportant)}
                         sx={{
@@ -206,18 +199,18 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                             color: 'warning.main',
                           },
                         }}
-                        aria-label={email.isImportant ? "Mark as not important" : "Mark as important"}
+                        aria-label={email.isImportant ? 'Mark as not important' : 'Mark as important'}
                       >
                         {email.isImportant ? (
-                          <Star sx={{ color: "warning.main" }} />
+                          <Star sx={{ color: 'warning.main' }} />
                         ) : (
-                          <StarBorder sx={{ color: "text.secondary" }} />
+                          <StarBorder sx={{ color: 'text.secondary' }} />
                         )}
                       </IconButton>
                     </Tooltip>
                   )}
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {onDelete && !isInTrash && (
                     <Tooltip title="Delete this email">
                       <IconButton
@@ -236,7 +229,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                   )}
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {!email.isRead && !isInTrash && (
                   <Chip label="Unread" size="small" color="warning" />
                 )}
@@ -249,16 +242,16 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
 
           <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                 From
               </Typography>
               <Typography variant="body1">{email.from}</Typography>
             </Box>
 
             <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                 To
               </Typography>
               <Typography variant="body1">{email.to}</Typography>
@@ -266,7 +259,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
 
             {email.cc && (
               <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                   CC
                 </Typography>
                 <Typography variant="body1">{email.cc}</Typography>
@@ -275,7 +268,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
 
             {email.bcc && (
               <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                   BCC
                 </Typography>
                 <Typography variant="body1">{email.bcc}</Typography>
@@ -283,7 +276,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
             )}
 
             <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                 Date
               </Typography>
               <Typography variant="body1">{formatDate(email.createdAt)}</Typography>
@@ -293,18 +286,18 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
           <Divider sx={{ my: 3 }} />
 
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               Content
             </Typography>
             <Typography
               variant="body1"
               sx={{
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
                 lineHeight: 1.6,
               }}
             >
-              {email.content || "No content"}
+              {email.content || 'No content'}
             </Typography>
           </Box>
         </Box>

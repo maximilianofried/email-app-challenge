@@ -1,6 +1,6 @@
-import ClientPage from "./client-page";
-import { ThreadService } from "@/features/threads/services/thread.service";
-import { EmailDirection } from "@/lib/schema";
+import ClientPage from './client-page';
+import { ThreadService } from '@/features/threads/services/thread.service';
+import { EmailDirection } from '@/lib/schema';
 
 export default async function Home() {
   const threadService = new ThreadService();

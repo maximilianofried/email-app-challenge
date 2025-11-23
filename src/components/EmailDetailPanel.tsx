@@ -20,7 +20,7 @@ export default function EmailDetailPanel({
   selectedEmailId,
   isInTrash,
   onDelete,
-  onToggleImportant
+  onToggleImportant,
 }: EmailDetailPanelProps) {
   return (
     <Box sx={{

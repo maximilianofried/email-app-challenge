@@ -13,21 +13,31 @@ import {
   StarBorder,
   Delete,
 } from '@mui/icons-material';
+import { Email } from '@/lib/schema';
 
-interface EmailProps {
-  id: number;
-  threadId: string;
-  subject: string;
-  from: string;
-  to: string;
-  content: string | null;
-  isRead: boolean;
-  isImportant: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+/**
+ * Props for the EmailCard component
+ */
+interface EmailCardProps {
+  /** Email object to display */
+  email: Email;
+  /** Callback when the card is clicked */
+  onClick?: () => void;
+  /** Callback to delete the email, receives email ID */
+  onDelete?: (id: number) => void;
+  /** Callback to toggle important status, receives email ID and new status */
+  onToggleImportant?: (id: number, isImportant: boolean) => void;
+  /** Whether the email is in the trash folder */
+  isInTrash?: boolean;
+}
 
-const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: (id: number) => void; onToggleImportant?: (id: number, isImportant: boolean) => void; isInTrash?: boolean }> = ({ email, onClick, onDelete, onToggleImportant, isInTrash = false }) => {
+const EmailCard: React.FC<EmailCardProps> = ({
+  email,
+  onClick,
+  onDelete,
+  onToggleImportant,
+  isInTrash = false,
+}) => {
   const getInitials = (name: string) => {
     return name.split('@')[0].substring(0, 2).toUpperCase();
   };
@@ -132,7 +142,7 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: 
                       color: 'warning.main',
                     },
                   }}
-                  aria-label={email.isImportant ? "Mark as not important" : "Mark as important"}
+                  aria-label={email.isImportant ? 'Mark as not important' : 'Mark as important'}
                 >
                   {email.isImportant ? (
                     <Star sx={{ color: 'warning.main', fontSize: '1rem' }} />

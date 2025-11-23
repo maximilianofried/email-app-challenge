@@ -30,7 +30,8 @@ export default function ClientPage(props: ClientPageProps) {
 
   useEffect(() => {
     selection.clearSelection();
-  }, [list.activeFilter, selection.clearSelection]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.activeFilter]);
 
   const handleEmailClick = async (emailId: number) => {
     if (selection.selectedEmailId === emailId && selection.selectedEmail) {
@@ -40,25 +41,25 @@ export default function ClientPage(props: ClientPageProps) {
     const data = await selection.selectEmail(emailId);
 
     if (data) {
-       const hasUnreadEmails = data.thread?.some((email: Email) => !email.isRead) || !data.email.isRead;
+      const hasUnreadEmails = data.thread?.some((email: Email) => !email.isRead) || !data.email.isRead;
 
-       if (hasUnreadEmails) {
-         try {
-            await fetch(`${API_ENDPOINTS.EMAILS}/${emailId}`, {
-              method: HTTP_METHODS.PATCH,
-              headers: API_HEADERS.CONTENT_TYPE_JSON,
-              body: JSON.stringify({ markThreadAsRead: true }),
-            });
+      if (hasUnreadEmails) {
+        try {
+          await fetch(`${API_ENDPOINTS.EMAILS}/${emailId}`, {
+            method: HTTP_METHODS.PATCH,
+            headers: API_HEADERS.CONTENT_TYPE_JSON,
+            body: JSON.stringify({ markThreadAsRead: true }),
+          });
 
-            list.setEmails(prev => prev.map(e => e.threadId === data.email.threadId ? { ...e, isRead: true } : e));
+          list.setEmails(prev => prev.map(e => e.threadId === data.email.threadId ? { ...e, isRead: true } : e));
 
-            selection.setThreadEmails(prev => prev.map(e => ({ ...e, isRead: true })));
-            selection.setSelectedEmail(prev => prev ? { ...prev, isRead: true } : null);
+          selection.setThreadEmails(prev => prev.map(e => ({ ...e, isRead: true })));
+          selection.setSelectedEmail(prev => prev ? { ...prev, isRead: true } : null);
 
-         } catch (e) {
-             console.error("Error marking read", e);
-         }
-       }
+        } catch (e) {
+          console.error('Error marking read', e);
+        }
+      }
     }
   };
 
@@ -117,7 +118,7 @@ export default function ClientPage(props: ClientPageProps) {
       selection.setThreadEmails(prev => prev.filter(e => e.id !== emailId));
 
       if (selection.selectedEmailId === emailId) {
-         selection.clearSelection();
+        selection.clearSelection();
       }
 
       list.refreshList();

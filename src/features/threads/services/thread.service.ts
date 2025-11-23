@@ -1,6 +1,6 @@
-import { ThreadRepository } from "../repositories/thread.repository";
-import { Email, EmailDirection } from "@/lib/schema";
-import { ERROR_MESSAGES, CONFIG } from "@/lib/constants";
+import { ThreadRepository } from '../repositories/thread.repository';
+import { Email, EmailDirection } from '@/lib/schema';
+import { ERROR_MESSAGES, CONFIG } from '@/lib/constants';
 
 export class ThreadService {
   private threadRepository: ThreadRepository;

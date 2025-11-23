@@ -33,7 +33,9 @@ export function useEmailSelection() {
       return data;
     } catch (error) {
       console.error('Error fetching email:', error);
+      setSelectedEmailId(null);
       setSelectedEmail(null);
+      setThreadEmails([]);
       return null;
     } finally {
       setIsLoading(false);
@@ -48,6 +50,6 @@ export function useEmailSelection() {
     selectEmail,
     clearSelection,
     setSelectedEmail,
-    setThreadEmails
+    setThreadEmails,
   };
 }

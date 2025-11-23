@@ -7,7 +7,6 @@ import {
   TextField,
   Button,
   Box,
-  Typography,
 } from '@mui/material';
 import {
   EmailComposerProps,
@@ -34,7 +33,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ open, onClose, onSubmit }
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field: keyof EmailComposerFormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData((prev) => ({
       ...prev,

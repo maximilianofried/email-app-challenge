@@ -1,8 +1,8 @@
 import { db } from '@/lib/database';
-import { Email, EmailDirection, emails } from '@/lib/schema';
+import { Email, EmailData, EmailDirection, emails } from '@/lib/schema';
 
 // Create sample emails organized into threads
-export const emailData: Email[] = [
+export const emailData: EmailData[] = [
   // Thread 1: Project Discussion (5 emails)
   {
     id: 1,
@@ -235,7 +235,7 @@ export const emailData: Email[] = [
   },
   {
     id: 18,
-    threadId: 'thread-004',
+    threadId: 'thread-005',
     subject: 'Re: Coffee Chat?',
     from: 'user@example.com',
     to: 'colleague@company.com',
@@ -274,10 +274,14 @@ export const emailData: Email[] = [
   },
 ];
 
-export const threads: Email[] = [];
+export const threads: EmailData[] = [];
 const seenThreads: Set<string> = new Set();
 
-const mostRecentEmails = emailData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+const mostRecentEmails = emailData.sort((a, b) => {
+  const timeA = a.createdAt ? a.createdAt.getTime() : 0;
+  const timeB = b.createdAt ? b.createdAt.getTime() : 0;
+  return timeB - timeA;
+});
 for (const email of mostRecentEmails) {
   if (!seenThreads.has(email.threadId)) {
     threads.push(email);

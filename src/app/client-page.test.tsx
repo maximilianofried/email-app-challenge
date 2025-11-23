@@ -33,12 +33,12 @@ describe('Home Page Client', () => {
         ok: true,
         json: async () => {
           if (url.includes('/api/emails?')) {
-             if (url.includes('search=')) {
-                const urlObj = new URL(url, 'http://localhost');
-                const search = urlObj.searchParams.get('search') || '';
-                return emailList.filter(e => e.subject.includes(search));
-             }
-             return emailList;
+            if (url.includes('search=')) {
+              const urlObj = new URL(url, 'http://localhost');
+              const search = urlObj.searchParams.get('search') || '';
+              return emailList.filter(e => e.subject.includes(search));
+            }
+            return emailList;
           }
           if (url.match(/\/api\/emails\/\d+/)) {
             // Detail view
@@ -134,9 +134,9 @@ describe('Home Page Client', () => {
 
     // Wait for the search to complete (debounce + fetch)
     await waitFor(() => {
-        const displayedEmails = screen.getAllByTestId(/email-card-/);
-        // We expect filtering to happen
-        expect(displayedEmails.length).toBeLessThan(emailList.length);
+      const displayedEmails = screen.getAllByTestId(/email-card-/);
+      // We expect filtering to happen
+      expect(displayedEmails.length).toBeLessThan(emailList.length);
     }, { timeout: 2000 });
 
     expect(screen.getAllByText(searchTerm).length).toBeGreaterThan(0);
@@ -148,11 +148,11 @@ describe('Home Page Client', () => {
 
   test('The search feature is debounced and works as expected', async () => {
     const searchTerm = threads[0].subject;
-    
+
     // We mock fetch to track calls
     const originalFetch = global.fetch;
-    const fetchSpy = jest.fn((url: string, init?: any) => originalFetch(url, init));
-    global.fetch = fetchSpy as any;
+    const fetchSpy = jest.fn((url: string, init?: RequestInit) => originalFetch(url, init));
+    global.fetch = fetchSpy as typeof fetch;
 
     const ui = (
       <FilterProvider>
@@ -162,7 +162,7 @@ describe('Home Page Client', () => {
     render(ui);
 
     await screen.findByTestId('email-list');
-    
+
     // Clear initial fetch call
     fetchSpy.mockClear();
 
@@ -175,18 +175,18 @@ describe('Home Page Client', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
 
     // The email list should still be full
-    let displayedEmails = screen.getAllByTestId(/email-card-/);
+    const displayedEmails = screen.getAllByTestId(/email-card-/);
     expect(displayedEmails.length).toBe(emailList.length);
 
     // Wait for debounce
     await waitFor(() => {
-        expect(fetchSpy).toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalled();
     }, { timeout: 1500 });
-    
+
     // Now it should be filtered
     await waitFor(() => {
-        const displayedEmails = screen.getAllByTestId(/email-card-/);
-        expect(displayedEmails.length).toBeLessThan(emailList.length);
+      const displayedEmails = screen.getAllByTestId(/email-card-/);
+      expect(displayedEmails.length).toBeLessThan(emailList.length);
     });
   });
 });

@@ -12,9 +12,9 @@ export function useEmailList(initialEmails: Email[]) {
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  
+
   // Keep track of current search term for pagination
-  const currentSearchTerm = useRef<string>("");
+  const currentSearchTerm = useRef<string>('');
 
   const getApiUrl = (filter: FilterType, searchTerm?: string, cursor?: number) => {
     let url = `/api/emails?limit=${CONFIG.DEFAULT_LIMIT}`;
@@ -38,7 +38,7 @@ export function useEmailList(initialEmails: Email[]) {
     if (cursor) {
       url += `&cursor=${cursor}`;
     }
-    
+
     return url;
   };
 
@@ -46,7 +46,7 @@ export function useEmailList(initialEmails: Email[]) {
     if (searchTerm !== undefined) {
       currentSearchTerm.current = searchTerm;
     }
-    
+
     if (searchTerm && searchTerm.trim()) {
       setIsSearching(true);
     }
@@ -91,7 +91,7 @@ export function useEmailList(initialEmails: Email[]) {
       }
 
       const data = await response.json();
-      
+
       if (data.length > 0) {
         setEmails(prev => [...prev, ...data]);
         setHasMore(data.length === CONFIG.DEFAULT_LIMIT);
@@ -109,14 +109,14 @@ export function useEmailList(initialEmails: Email[]) {
   useEffect(() => {
     // Reset pagination state when filter changes
     setHasMore(true);
-    currentSearchTerm.current = "";
+    currentSearchTerm.current = '';
     fetchEmails(activeFilter);
   }, [activeFilter, fetchEmails]);
 
   const handleSearch = useCallback(async (searchTerm: string) => {
     currentSearchTerm.current = searchTerm;
     if (!searchTerm.trim()) {
-      fetchEmails(activeFilter, "");
+      fetchEmails(activeFilter, '');
       return;
     }
     fetchEmails(activeFilter, searchTerm);
@@ -139,6 +139,6 @@ export function useEmailList(initialEmails: Email[]) {
     setEmails,
     refreshList,
     activeFilter,
-    loadMore
+    loadMore,
   };
 }

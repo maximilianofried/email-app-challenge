@@ -1,10 +1,10 @@
-import { randomUUID } from "crypto";
-import { EmailRepository } from "../repositories/email.repository";
-import { ThreadService } from "@/features/threads/services/thread.service";
-import { Email, EmailDirection, EmailData } from "@/lib/schema";
-import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from "@/lib/dtos/emails.dto";
-import { NotFoundError, BadRequestError } from "@/lib/errors";
-import { ERROR_MESSAGES } from "@/lib/constants";
+import { randomUUID } from 'crypto';
+import { EmailRepository } from '../repositories/email.repository';
+import { ThreadService } from '@/features/threads/services/thread.service';
+import { Email, EmailDirection, EmailData } from '@/lib/schema';
+import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from '@/lib/dtos/emails.dto';
+import { NotFoundError, BadRequestError } from '@/lib/errors';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 export class EmailService {
   private emailRepository: EmailRepository;
@@ -12,7 +12,7 @@ export class EmailService {
 
   constructor(
     emailRepository?: EmailRepository,
-    threadService?: ThreadService
+    threadService?: ThreadService,
   ) {
     this.emailRepository = emailRepository || new EmailRepository();
     this.threadService = threadService || new ThreadService();

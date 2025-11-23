@@ -1,9 +1,9 @@
-import { EmailService } from "../services/email.service";
-import { EmailRepository } from "../repositories/email.repository";
-import { ThreadService } from "../../threads/services/thread.service";
-import { NotFoundError, BadRequestError } from "@/lib/errors";
-import { CreateEmailDto } from "@/lib/dtos/emails.dto";
-import { Email, EmailDirection } from "@/lib/schema";
+import { EmailService } from '../services/email.service';
+import { EmailRepository } from '../repositories/email.repository';
+import { ThreadService } from '../../threads/services/thread.service';
+import { NotFoundError, BadRequestError } from '@/lib/errors';
+import { CreateEmailDto } from '@/lib/dtos/emails.dto';
+import { Email, EmailDirection } from '@/lib/schema';
 
 const mockEmailRepository = {
   findById: jest.fn(),
@@ -23,7 +23,7 @@ const mockThreadService = {
   getThreadedEmails: jest.fn(),
 };
 
-describe("EmailService", () => {
+describe('EmailService', () => {
   let emailService: EmailService;
 
   beforeEach(() => {
@@ -32,13 +32,13 @@ describe("EmailService", () => {
 
     emailService = new EmailService(
       mockEmailRepository as unknown as EmailRepository,
-      mockThreadService as unknown as ThreadService
+      mockThreadService as unknown as ThreadService,
     );
   });
 
-  describe("getEmailById", () => {
-    it("should return an email if found", async () => {
-      const mockEmail = { id: 1, subject: "Test" } as Email;
+  describe('getEmailById', () => {
+    it('should return an email if found', async () => {
+      const mockEmail = { id: 1, subject: 'Test' } as Email;
       mockEmailRepository.findById.mockResolvedValue(mockEmail);
 
       const result = await emailService.getEmailById(1);
@@ -47,22 +47,22 @@ describe("EmailService", () => {
       expect(mockEmailRepository.findById).toHaveBeenCalledWith(1, false);
     });
 
-    it("should throw NotFoundError if email does not exist", async () => {
+    it('should throw NotFoundError if email does not exist', async () => {
       mockEmailRepository.findById.mockResolvedValue(undefined);
 
       await expect(emailService.getEmailById(999)).rejects.toThrow(NotFoundError);
     });
   });
 
-  describe("createEmail", () => {
+  describe('createEmail', () => {
     const validData: CreateEmailDto = {
-      from: "me@test.com",
-      to: "you@test.com",
-      subject: "Hello",
-      content: "World",
+      from: 'me@test.com',
+      to: 'you@test.com',
+      subject: 'Hello',
+      content: 'World',
     };
 
-    it("should create an email successfully", async () => {
+    it('should create an email successfully', async () => {
       const mockCreatedEmail = { id: 1, ...validData } as unknown as Email;
       mockEmailRepository.create.mockResolvedValue(mockCreatedEmail);
 
@@ -70,20 +70,20 @@ describe("EmailService", () => {
 
       expect(result).toEqual(mockCreatedEmail);
       expect(mockEmailRepository.create).toHaveBeenCalledWith(expect.objectContaining({
-        subject: "Hello",
+        subject: 'Hello',
         isRead: true,
-        direction: EmailDirection.OUTGOING
+        direction: EmailDirection.OUTGOING,
       }));
     });
 
-    it("should throw BadRequestError if required fields are missing", async () => {
-      const invalidData = { ...validData, subject: "" };
+    it('should throw BadRequestError if required fields are missing', async () => {
+      const invalidData = { ...validData, subject: '' };
       await expect(emailService.createEmail(invalidData)).rejects.toThrow(BadRequestError);
     });
   });
 
-  describe("updateReadStatus", () => {
-    it("should update read status successfully", async () => {
+  describe('updateReadStatus', () => {
+    it('should update read status successfully', async () => {
       const mockEmail = { id: 1, isDeleted: false } as Email;
       mockEmailRepository.findById.mockResolvedValue(mockEmail);
       mockEmailRepository.update.mockResolvedValue({ ...mockEmail, isRead: true });
@@ -94,12 +94,12 @@ describe("EmailService", () => {
       expect(mockEmailRepository.update).toHaveBeenCalledWith(1, { isRead: true });
     });
 
-    it("should throw NotFoundError if email not found", async () => {
+    it('should throw NotFoundError if email not found', async () => {
       mockEmailRepository.findById.mockResolvedValue(undefined);
       await expect(emailService.updateReadStatus(999, true)).rejects.toThrow(NotFoundError);
     });
 
-    it("should throw BadRequestError if email is deleted", async () => {
+    it('should throw BadRequestError if email is deleted', async () => {
       const mockEmail = { id: 1, isDeleted: true } as Email;
       mockEmailRepository.findById.mockResolvedValue(mockEmail);
 

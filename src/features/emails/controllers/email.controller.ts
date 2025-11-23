@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { EmailService } from "../services/email.service";
-import { ThreadService } from "@/features/threads/services/thread.service";
+import { NextRequest, NextResponse } from 'next/server';
+import { EmailService } from '../services/email.service';
+import { ThreadService } from '@/features/threads/services/thread.service';
 import {
   createEmailSchema,
   updateEmailSchema,
   emailListFiltersSchema,
-  validateInput
-} from "@/lib/dtos/emails.dto";
-import { handleApiError, BadRequestError } from "@/lib/errors";
-import { ERROR_MESSAGES } from "@/lib/constants";
+  validateInput,
+} from '@/lib/dtos/emails.dto';
+import { handleApiError, BadRequestError } from '@/lib/errors';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 export class EmailController {
   private emailService: EmailService;
@@ -21,7 +21,7 @@ export class EmailController {
 
   findById = async (
     request: NextRequest,
-    id: string
+    id: string,
   ): Promise<NextResponse> => {
     try {
       const emailId = parseInt(id, 10);
@@ -56,13 +56,13 @@ export class EmailController {
       const { searchParams } = new URL(request.url);
 
       const rawFilters = {
-        search: searchParams.get("search") || undefined,
-        threaded: searchParams.get("threaded") || undefined,
-        direction: searchParams.get("direction") || undefined,
-        important: searchParams.get("important") || undefined,
-        deleted: searchParams.get("deleted") || undefined,
-        cursor: searchParams.get("cursor") || undefined,
-        limit: searchParams.get("limit") || undefined,
+        search: searchParams.get('search') || undefined,
+        threaded: searchParams.get('threaded') || undefined,
+        direction: searchParams.get('direction') || undefined,
+        important: searchParams.get('important') || undefined,
+        deleted: searchParams.get('deleted') || undefined,
+        cursor: searchParams.get('cursor') || undefined,
+        limit: searchParams.get('limit') || undefined,
       };
 
       const filters = validateInput(emailListFiltersSchema, rawFilters);
@@ -77,7 +77,7 @@ export class EmailController {
 
   update = async (
     request: NextRequest,
-    id: string
+    id: string,
   ): Promise<NextResponse> => {
     try {
       const emailId = parseInt(id, 10);
@@ -116,7 +116,7 @@ export class EmailController {
 
   delete = async (
     request: NextRequest,
-    id: string
+    id: string,
   ): Promise<NextResponse> => {
     try {
       const emailId = parseInt(id, 10);
@@ -126,7 +126,7 @@ export class EmailController {
       }
 
       const { searchParams } = new URL(request.url);
-      const deleteThread = searchParams.get("thread") === "true";
+      const deleteThread = searchParams.get('thread') === 'true';
 
       if (deleteThread) {
         const email = await this.emailService.getEmailById(emailId);

@@ -1,9 +1,10 @@
-import { db } from "@/lib/database";
-import { emails, Email, EmailDirection } from "@/lib/schema";
-import { eq, desc, asc, sql, and, lt } from "drizzle-orm";
+import { db } from '@/lib/database';
+import { emails, Email, EmailDirection } from '@/lib/schema';
+import { eq, desc, asc, sql, and, lt } from 'drizzle-orm';
+import { CONFIG } from '@/lib/constants';
 
 export class ThreadRepository {
-  findLatestByThread = async (limit: number = 50, cursor?: number): Promise<Email[]> => {
+  findLatestByThread = async (limit: number = CONFIG.DEFAULT_LIMIT, cursor?: number): Promise<Email[]> => {
     const subquery = db
       .select({
         threadId: emails.threadId,
@@ -17,7 +18,7 @@ export class ThreadRepository {
     let whereClause = and(
       eq(emails.threadId, subquery.threadId),
       eq(emails.id, subquery.latestId),
-      eq(emails.isDeleted, false)
+      eq(emails.isDeleted, false),
     );
 
     if (cursor) {
@@ -29,7 +30,7 @@ export class ThreadRepository {
       .from(emails)
       .innerJoin(
         subquery,
-        whereClause
+        whereClause,
       )
       .orderBy(desc(emails.id))
       .limit(limit);
@@ -37,7 +38,7 @@ export class ThreadRepository {
     return result.map((r) => r.emails);
   };
 
-  findLatestByThreadAndDirection = async (direction: EmailDirection, limit: number = 50, cursor?: number): Promise<Email[]> => {
+  findLatestByThreadAndDirection = async (direction: EmailDirection, limit: number = CONFIG.DEFAULT_LIMIT, cursor?: number): Promise<Email[]> => {
     const subquery = db
       .select({
         threadId: emails.threadId,
@@ -52,11 +53,11 @@ export class ThreadRepository {
       eq(emails.threadId, subquery.threadId),
       eq(emails.id, subquery.latestId),
       eq(emails.direction, direction),
-      eq(emails.isDeleted, false)
+      eq(emails.isDeleted, false),
     );
 
     if (cursor) {
-        whereClause = and(whereClause, lt(emails.id, cursor));
+      whereClause = and(whereClause, lt(emails.id, cursor));
     }
 
     const result = await db
@@ -64,7 +65,7 @@ export class ThreadRepository {
       .from(emails)
       .innerJoin(
         subquery,
-        whereClause
+        whereClause,
       )
       .orderBy(desc(emails.id))
       .limit(limit);

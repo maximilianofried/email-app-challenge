@@ -40,7 +40,7 @@ export default function EmailListSidebar({
   onToggleImportant,
   onLoadMore,
   hasMore,
-  isLoadingMore
+  isLoadingMore,
 }: EmailListSidebarProps) {
   // Use currentFilter if provided (based on actual data), otherwise fallback to activeFilter
   const filterForLogic = currentFilter || activeFilter;
@@ -110,7 +110,7 @@ export default function EmailListSidebar({
         {(isSearching && emails.length === 0) || (isLoading && emails.length === 0) ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
             <Typography color="text.secondary">
-               {isSearching ? UI_LABELS.SEARCHING : UI_LABELS.LOADING}
+              {isSearching ? UI_LABELS.SEARCHING : UI_LABELS.LOADING}
             </Typography>
           </Box>
         ) : (
@@ -128,8 +128,8 @@ export default function EmailListSidebar({
               ))}
             </Box>
             {hasMore && onLoadMore && (
-              <Button 
-                onClick={onLoadMore} 
+              <Button
+                onClick={onLoadMore}
                 disabled={isLoadingMore}
                 sx={{ mt: 2, mb: 2 }}
                 variant="text"

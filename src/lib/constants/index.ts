@@ -39,7 +39,7 @@ export const UI_LABELS = {
 } as const;
 
 export const ERROR_MESSAGES = {
-  EMAIL_NOT_FOUND: 'Email not Found',
+  EMAIL_NOT_FOUND: 'Email not found',
   REQUIRED_FIELDS: 'Subject, to, and content are required',
   FROM_REQUIRED: 'From is required',
   TO_REQUIRED: 'To is required',
@@ -53,7 +53,7 @@ export const ERROR_MESSAGES = {
   TOGGLE_IMPORTANT_FAILED: 'Failed to toggle important status',
   INVALID_ID: 'Invalid ID',
   INVALID_UPDATE_DATA: 'Invalid update data',
-  THREAD_NOT_FOUND: 'Thread not Found',
+  THREAD_NOT_FOUND: 'Thread not found',
 } as const;
 
 
