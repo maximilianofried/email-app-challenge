@@ -172,6 +172,9 @@ export default function ClientPage(props: ClientPageProps) {
         onCompose={() => setIsComposerOpen(true)}
         onDelete={handleDeleteThread}
         onToggleImportant={handleToggleImportant}
+        onLoadMore={list.loadMore}
+        hasMore={list.hasMore}
+        isLoadingMore={list.isLoadingMore}
       />
 
       <EmailDetailPanel

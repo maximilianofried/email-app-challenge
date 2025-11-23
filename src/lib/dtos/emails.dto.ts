@@ -30,6 +30,8 @@ export const emailListFiltersSchema = z.object({
     .pipe(z.boolean().optional())
     .optional(),
   deleted: z.string().transform((val) => val === "true").pipe(z.boolean()).optional(),
+  cursor: z.coerce.number().optional(),
+  limit: z.coerce.number().optional(),
 });
 
 // TypeScript Types (derived from Zod or explicitly defined if needed)
@@ -37,6 +39,11 @@ export const emailListFiltersSchema = z.object({
 export type CreateEmailDto = z.infer<typeof createEmailSchema>;
 export type UpdateEmailDto = z.infer<typeof updateEmailSchema>;
 export type EmailListFiltersDto = z.infer<typeof emailListFiltersSchema>;
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  nextCursor?: number;
+}
 
 export interface EmailWithThreadDto {
   email: Email;

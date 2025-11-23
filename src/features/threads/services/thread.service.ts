@@ -8,11 +8,11 @@ export class ThreadService {
     this.threadRepository = threadRepository || new ThreadRepository();
   }
 
-  getThreadedEmails = async (direction?: EmailDirection): Promise<Email[]> => {
+  getThreadedEmails = async (direction?: EmailDirection, limit: number = 50, cursor?: number): Promise<Email[]> => {
     if (direction) {
-      return await this.threadRepository.findLatestByThreadAndDirection(direction);
+      return await this.threadRepository.findLatestByThreadAndDirection(direction, limit, cursor);
     }
-    return await this.threadRepository.findLatestByThread();
+    return await this.threadRepository.findLatestByThread(limit, cursor);
   };
 
   getEmailsByThreadId = async (threadId: string, includeDeleted: boolean = false, onlyDeleted: boolean = false): Promise<Email[]> => {

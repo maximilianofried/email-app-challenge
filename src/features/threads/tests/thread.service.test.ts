@@ -41,7 +41,32 @@ describe("ThreadService", () => {
       const result = await threadService.getThreadedEmails(EmailDirection.INCOMING);
 
       expect(result).toEqual(mockEmails);
-      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.INCOMING);
+      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.INCOMING, 50, undefined);
+    });
+
+    it("should pass pagination parameters to repository", async () => {
+      const mockEmails = [{ id: 1, subject: "Test" }] as Email[];
+      mockThreadRepository.findLatestByThread.mockResolvedValue(mockEmails);
+
+      const limit = 10;
+      const cursor = 100;
+
+      await threadService.getThreadedEmails(undefined, limit, cursor);
+
+      expect(mockThreadRepository.findLatestByThread).toHaveBeenCalledWith(limit, cursor);
+    });
+
+    it("should pass pagination parameters with direction", async () => {
+      const mockEmails = [{ id: 1, subject: "Test" }] as Email[];
+      mockThreadRepository.findLatestByThreadAndDirection.mockResolvedValue(mockEmails);
+
+      const limit = 10;
+      const cursor = 100;
+      const direction = EmailDirection.INCOMING;
+
+      await threadService.getThreadedEmails(direction, limit, cursor);
+
+      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(direction, limit, cursor);
     });
   });
 

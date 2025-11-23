@@ -163,9 +163,9 @@ export class EmailService {
     // Handle threaded view with optional direction filter
     if (filters.threaded) {
       if (filters.direction) {
-        return await this.threadService.getThreadedEmails(filters.direction);
+        return await this.threadService.getThreadedEmails(filters.direction, filters.limit, filters.cursor);
       }
-      return await this.threadService.getThreadedEmails();
+      return await this.threadService.getThreadedEmails(undefined, filters.limit, filters.cursor);
     }
 
     // Handle direction filter

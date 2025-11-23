@@ -1,9 +1,9 @@
 import { db } from "@/lib/database";
 import { emails, Email, EmailDirection } from "@/lib/schema";
-import { eq, desc, asc, sql, and } from "drizzle-orm";
+import { eq, desc, asc, sql, and, lt } from "drizzle-orm";
 
 export class ThreadRepository {
-  findLatestByThread = async (): Promise<Email[]> => {
+  findLatestByThread = async (limit: number = 50, cursor?: number): Promise<Email[]> => {
     const subquery = db
       .select({
         threadId: emails.threadId,
@@ -14,23 +14,30 @@ export class ThreadRepository {
       .groupBy(emails.threadId)
       .as('latest');
 
+    let whereClause = and(
+      eq(emails.threadId, subquery.threadId),
+      eq(emails.id, subquery.latestId),
+      eq(emails.isDeleted, false)
+    );
+
+    if (cursor) {
+      whereClause = and(whereClause, lt(emails.id, cursor));
+    }
+
     const result = await db
       .select()
       .from(emails)
       .innerJoin(
         subquery,
-        and(
-          eq(emails.threadId, subquery.threadId),
-          eq(emails.id, subquery.latestId),
-          eq(emails.isDeleted, false)
-        )
+        whereClause
       )
-      .orderBy(desc(emails.createdAt));
+      .orderBy(desc(emails.id))
+      .limit(limit);
 
     return result.map((r) => r.emails);
   };
 
-  findLatestByThreadAndDirection = async (direction: EmailDirection): Promise<Email[]> => {
+  findLatestByThreadAndDirection = async (direction: EmailDirection, limit: number = 50, cursor?: number): Promise<Email[]> => {
     const subquery = db
       .select({
         threadId: emails.threadId,
@@ -41,19 +48,26 @@ export class ThreadRepository {
       .groupBy(emails.threadId)
       .as('latest');
 
+    let whereClause = and(
+      eq(emails.threadId, subquery.threadId),
+      eq(emails.id, subquery.latestId),
+      eq(emails.direction, direction),
+      eq(emails.isDeleted, false)
+    );
+
+    if (cursor) {
+        whereClause = and(whereClause, lt(emails.id, cursor));
+    }
+
     const result = await db
       .select()
       .from(emails)
       .innerJoin(
         subquery,
-        and(
-          eq(emails.threadId, subquery.threadId),
-          eq(emails.id, subquery.latestId),
-          eq(emails.direction, direction),
-          eq(emails.isDeleted, false)
-        )
+        whereClause
       )
-      .orderBy(desc(emails.createdAt));
+      .orderBy(desc(emails.id))
+      .limit(limit);
 
     return result.map((r) => r.emails);
   };

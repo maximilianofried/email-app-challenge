@@ -60,6 +60,8 @@ export class EmailController {
         direction: searchParams.get("direction") || undefined,
         important: searchParams.get("important") || undefined,
         deleted: searchParams.get("deleted") || undefined,
+        cursor: searchParams.get("cursor") || undefined,
+        limit: searchParams.get("limit") || undefined,
       };
 
       const filters = validateInput(emailListFiltersSchema, rawFilters);

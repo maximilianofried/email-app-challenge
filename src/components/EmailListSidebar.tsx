@@ -20,6 +20,9 @@ interface EmailListSidebarProps {
   onSelect: (id: number) => void;
   onDelete: (id: number) => void;
   onToggleImportant: (id: number, isImportant: boolean) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
 }
 
 export default function EmailListSidebar({
@@ -33,7 +36,10 @@ export default function EmailListSidebar({
   onCompose,
   onSelect,
   onDelete,
-  onToggleImportant
+  onToggleImportant,
+  onLoadMore,
+  hasMore,
+  isLoadingMore
 }: EmailListSidebarProps) {
   // Use currentFilter if provided (based on actual data), otherwise fallback to activeFilter
   const filterForLogic = currentFilter || activeFilter;
@@ -107,17 +113,29 @@ export default function EmailListSidebar({
             </Typography>
           </Box>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
-            {emails.map((email) => (
-              <EmailCard
-                key={email.id}
-                email={email}
-                onClick={() => onSelect(email.id)}
-                onDelete={onDelete}
-                onToggleImportant={onToggleImportant}
-                isInTrash={isInTrash}
-              />
-            ))}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
+              {emails.map((email) => (
+                <EmailCard
+                  key={email.id}
+                  email={email}
+                  onClick={() => onSelect(email.id)}
+                  onDelete={onDelete}
+                  onToggleImportant={onToggleImportant}
+                  isInTrash={isInTrash}
+                />
+              ))}
+            </Box>
+            {hasMore && onLoadMore && (
+              <Button 
+                onClick={onLoadMore} 
+                disabled={isLoadingMore}
+                sx={{ mt: 2, mb: 2 }}
+                variant="text"
+              >
+                {isLoadingMore ? 'Loading...' : 'Load More'}
+              </Button>
+            )}
           </Box>
         )}
       </Box>
