@@ -6,13 +6,22 @@ import { FilterType } from '../types/email.types';
 export function useEmailList(initialEmails: Email[]) {
   const { activeFilter } = useFilter();
   const [emails, setEmails] = useState<Email[]>(initialEmails);
+  // Track which filter the current emails correspond to. 
+  // Initialize with activeFilter assuming initialEmails match it (usually Inbox).
+  const [emailsFilter, setEmailsFilter] = useState<FilterType>(FilterType.INBOX);
+
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchEmailsByFilter = useCallback(async (filter: FilterType, searchTerm?: string) => {
     // Only show searching state for search queries, not filter changes
     if (searchTerm && searchTerm.trim()) {
       setIsSearching(true);
     }
+
+    // Set loading state for all fetches to allow UI to handle transitions
+    setIsLoading(true);
+
     try {
       let url = '/api/emails?';
 
@@ -38,11 +47,14 @@ export function useEmailList(initialEmails: Email[]) {
       }
       const data = await response.json();
       setEmails(data);
+      setEmailsFilter(filter);
     } catch (error) {
       console.error('Error fetching emails:', error);
       setEmails(initialEmails);
+      setEmailsFilter(FilterType.INBOX);
     } finally {
       setIsSearching(false);
+      setIsLoading(false);
     }
   }, [initialEmails]);
 
@@ -64,11 +76,14 @@ export function useEmailList(initialEmails: Email[]) {
       }
       const data = await response.json();
       setEmails(data);
+      // Search results effectively belong to the current active filter context
+      setEmailsFilter(activeFilter);
     } catch (error) {
       console.error('Error searching emails:', error);
       setEmails(initialEmails);
     } finally {
       setIsSearching(false);
+      setIsLoading(false);
     }
   }, [activeFilter, fetchEmailsByFilter, initialEmails]);
 
@@ -94,7 +109,9 @@ export function useEmailList(initialEmails: Email[]) {
 
   return {
     emails,
+    emailsFilter, // Exposed new state
     isSearching,
+    isLoading,
     handleSearch,
     removeEmail,
     removeThread,

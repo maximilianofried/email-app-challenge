@@ -69,15 +69,15 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
         id={`email-${threadEmail.id}`}
       >
         <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 2 }}>
-          <Avatar
-            sx={{
-              bgcolor: threadEmail.isImportant ? "warning.main" : "primary.main",
-              width: 40,
-              height: 40,
-              fontSize: "1rem",
-              fontWeight: 600,
-            }}
-          >
+            <Avatar
+              sx={{
+                bgcolor: (threadEmail.isImportant && !isInTrash) ? "warning.main" : "primary.main",
+                width: 40,
+                height: 40,
+                fontSize: "1rem",
+                fontWeight: 600,
+              }}
+            >
             {getInitials(threadEmail.from)}
           </Avatar>
           <Box sx={{ flex: 1 }}>
@@ -94,7 +94,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                 <Typography variant="caption" color="text.secondary">
                   {formatDate(threadEmail.createdAt)}
                 </Typography>
-                {onToggleImportant && (
+                {onToggleImportant && !isInTrash && (
                   <Tooltip title={threadEmail.isImportant ? "Mark as not important" : "Mark as important"}>
                     <IconButton
                       size="small"
@@ -137,10 +137,10 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
               </Box>
             </Box>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
-              {!threadEmail.isRead && (
+              {!threadEmail.isRead && !isInTrash && (
                 <Chip label="Unread" size="small" color="warning" variant="outlined" />
               )}
-              {threadEmail.isImportant && (
+              {threadEmail.isImportant && !isInTrash && (
                 <Chip label="Important" size="small" color="secondary" variant="outlined" />
               )}
             </Box>
@@ -180,7 +180,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
             <Avatar
               sx={{
-                bgcolor: email.isImportant ? "warning.main" : "primary.main",
+                bgcolor: (email.isImportant && !isInTrash) ? "warning.main" : "primary.main",
                 width: 48,
                 height: 48,
                 fontSize: "1.25rem",
@@ -195,7 +195,7 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                   <Typography variant="h5" sx={{ fontWeight: 600 }}>
                     {email.subject}
                   </Typography>
-                  {onToggleImportant && (
+                  {onToggleImportant && !isInTrash && (
                     <Tooltip title={email.isImportant ? "Mark as not important" : "Mark as important"}>
                       <IconButton
                         onClick={() => onToggleImportant(email.id, !email.isImportant)}
@@ -237,10 +237,10 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
                 </Box>
               </Box>
               <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {!email.isRead && (
+                {!email.isRead && !isInTrash && (
                   <Chip label="Unread" size="small" color="warning" />
                 )}
-                {email.isImportant && (
+                {email.isImportant && !isInTrash && (
                   <Chip label="Important" size="small" color="secondary" />
                 )}
               </Box>

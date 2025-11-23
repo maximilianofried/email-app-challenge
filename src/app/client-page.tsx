@@ -183,7 +183,9 @@ export default function ClientPage(props: ClientPageProps) {
       <EmailListSidebar
         emails={list.emails}
         isSearching={list.isSearching}
+        isLoading={list.isLoading}
         activeFilter={list.activeFilter}
+        currentFilter={list.emailsFilter}
         stats={{ unread: unreadCount, important: importantCount }}
         onSearch={list.handleSearch}
         onSelect={handleEmailClick}

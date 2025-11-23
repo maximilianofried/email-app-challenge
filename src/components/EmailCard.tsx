@@ -71,7 +71,7 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: 
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1 }}>
           <Avatar
             sx={{
-              bgcolor: email.isImportant ? 'warning.main' : 'primary.main',
+              bgcolor: (email.isImportant && !isInTrash) ? 'warning.main' : 'primary.main',
               width: 32,
               height: 32,
               fontSize: '0.75rem',
@@ -118,7 +118,7 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: 
               {formatDate(email.createdAt)}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-              {onToggleImportant && (
+              {onToggleImportant && !isInTrash && (
                 <IconButton
                   size="small"
                   onClick={(e) => {
@@ -204,7 +204,7 @@ const EmailCard: React.FC<{ email: EmailProps; onClick?: () => void; onDelete?: 
               sx={{ fontSize: '0.65rem', height: 20 }}
             />
           )}
-          {email.isImportant && (
+          {email.isImportant && !isInTrash && (
             <Chip
               label="Important"
               size="small"

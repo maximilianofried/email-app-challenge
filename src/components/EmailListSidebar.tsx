@@ -8,7 +8,9 @@ import { FilterType } from '@/features/emails/types/email.types';
 interface EmailListSidebarProps {
   emails: Email[];
   isSearching: boolean;
+  isLoading?: boolean;
   activeFilter: FilterType;
+  currentFilter?: FilterType; // Added prop to know the filter of the data
   stats: {
     unread: number;
     important: number;
@@ -23,7 +25,9 @@ interface EmailListSidebarProps {
 export default function EmailListSidebar({
   emails,
   isSearching,
+  isLoading,
   activeFilter,
+  currentFilter,
   stats,
   onSearch,
   onCompose,
@@ -31,7 +35,9 @@ export default function EmailListSidebar({
   onDelete,
   onToggleImportant
 }: EmailListSidebarProps) {
-  const isInTrash = activeFilter === FilterType.TRASH;
+  // Use currentFilter if provided (based on actual data), otherwise fallback to activeFilter
+  const filterForLogic = currentFilter || activeFilter;
+  const isInTrash = filterForLogic === FilterType.TRASH;
 
   return (
     <Box sx={{
@@ -66,13 +72,15 @@ export default function EmailListSidebar({
             color="primary"
             variant="outlined"
           />
-          <Chip
-            label={`${stats.unread} Unread`}
-            size="small"
-            color="warning"
-            variant="outlined"
-          />
-          {activeFilter !== FilterType.IMPORTANT && (
+          {!isInTrash && (
+            <Chip
+              label={`${stats.unread} Unread`}
+              size="small"
+              color="warning"
+              variant="outlined"
+            />
+          )}
+          {activeFilter !== FilterType.IMPORTANT && !isInTrash && (
             <Chip
               label={`${stats.important} Important`}
               size="small"
@@ -92,12 +100,14 @@ export default function EmailListSidebar({
         overflow: 'auto',
         p: 1,
       }} data-testid="email-list">
-        {isSearching && emails.length === 0 ? (
+        {(isSearching && emails.length === 0) || (isLoading && emails.length === 0) ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <Typography color="text.secondary">Searching...</Typography>
+            <Typography color="text.secondary">
+               {isSearching ? "Searching..." : "Loading..."}
+            </Typography>
           </Box>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
             {emails.map((email) => (
               <EmailCard
                 key={email.id}
