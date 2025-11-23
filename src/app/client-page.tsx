@@ -165,6 +165,7 @@ export default function ClientPage(props: ClientPageProps) {
         activeFilter={list.activeFilter}
         currentFilter={list.emailsFilter}
         stats={{ unread: unreadCount, important: importantCount }}
+        selectedEmailId={selection.selectedEmailId}
         onSearch={list.handleSearch}
         onSelect={handleEmailClick}
         onCompose={() => setIsComposerOpen(true)}

@@ -29,6 +29,8 @@ interface EmailCardProps {
   onToggleImportant?: (id: number, isImportant: boolean) => void;
   /** Whether the email is in the trash folder */
   isInTrash?: boolean;
+  /** Whether this email is currently selected */
+  isSelected?: boolean;
 }
 
 const EmailCard: React.FC<EmailCardProps> = ({
@@ -37,6 +39,7 @@ const EmailCard: React.FC<EmailCardProps> = ({
   onDelete,
   onToggleImportant,
   isInTrash = false,
+  isSelected = false,
 }) => {
   const getInitials = (name: string) => {
     return name.split('@')[0].substring(0, 2).toUpperCase();
@@ -64,15 +67,22 @@ const EmailCard: React.FC<EmailCardProps> = ({
       onClick={onClick}
       sx={{
         borderRadius: 1,
-        boxShadow: (email.isRead || isInTrash) ? 0 : 1,
-        border: (email.isRead || isInTrash) ? '1px solid' : '2px solid',
-        borderColor: (email.isRead || isInTrash) ? 'divider' : 'primary.main',
-        backgroundColor: (email.isRead || isInTrash) ? 'background.paper' : 'action.hover',
+        // Selected: Strong blue border + selected background
+        // Unread: Greyish background + subtle border
+        // Read: White background + subtle border
+        border: isSelected ? '2px solid' : '1px solid',
+        borderColor: isSelected ? 'primary.main' : 'divider',
+        backgroundColor: isSelected 
+          ? 'action.selected' 
+          : (!email.isRead && !isInTrash) 
+            ? 'action.hover' 
+            : 'background.paper',
+        boxShadow: isSelected ? 2 : 0,
         transition: 'all 0.2s ease-in-out',
         cursor: 'pointer',
         '&:hover': {
           boxShadow: 2,
-          backgroundColor: 'action.hover',
+          backgroundColor: isSelected ? 'action.selected' : 'action.hover',
         },
       }}
     >

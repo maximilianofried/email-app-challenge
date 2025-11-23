@@ -16,6 +16,7 @@ interface EmailListSidebarProps {
     unread: number;
     important: number;
   };
+  selectedEmailId: number | null;
   onSearch: (term: string) => void;
   onCompose: () => void;
   onSelect: (id: number) => void;
@@ -33,6 +34,7 @@ export default function EmailListSidebar({
   activeFilter,
   currentFilter,
   stats,
+  selectedEmailId,
   onSearch,
   onCompose,
   onSelect,
@@ -124,6 +126,7 @@ export default function EmailListSidebar({
                   onDelete={onDelete}
                   onToggleImportant={onToggleImportant}
                   isInTrash={isInTrash}
+                  isSelected={selectedEmailId === email.id}
                 />
               ))}
             </Box>

@@ -51,13 +51,10 @@ const EmailContent: React.FC<EmailContentProps> = ({ email, threadEmails = [], s
       <Paper
         key={threadEmail.id}
         ref={isSelected ? selectedEmailRef : null}
-        elevation={isSelected ? 4 : 1}
+        elevation={1}
         sx={{
           p: 2,
           mb: 2,
-          border: isSelected ? 2 : 0,
-          borderColor: isSelected ? 'primary.main' : 'transparent',
-          backgroundColor: isSelected ? 'action.selected' : 'background.paper',
         }}
         id={`email-${threadEmail.id}`}
       >
