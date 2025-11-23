@@ -5,13 +5,13 @@ import { z } from "zod";
 
 export const createEmailSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
-  to: z.string().email("Invalid 'to' email address"),
-  from: z.string().email("Invalid 'from' email address"),
+  to: z.email("Invalid 'to' email address"),
+  from: z.email("Invalid 'from' email address"),
   content: z.string().min(1, "Content is required"),
-  cc: z.string().optional(),
-  bcc: z.string().optional(),
-  threadId: z.string().uuid("Invalid thread ID format").optional(),
-  direction: z.nativeEnum(EmailDirection).optional(),
+  cc: z.email("Invalid 'cc' email address").optional().or(z.literal("")),
+  bcc: z.email("Invalid 'bcc' email address").optional().or(z.literal("")),
+  threadId: z.uuid("Invalid thread ID format").optional(),
+  direction: z.enum(EmailDirection).optional(),
 });
 
 export const updateEmailSchema = z.object({
@@ -23,7 +23,7 @@ export const updateEmailSchema = z.object({
 export const emailListFiltersSchema = z.object({
   search: z.string().optional(),
   threaded: z.string().transform((val) => val === "true").pipe(z.boolean()).optional(),
-  direction: z.nativeEnum(EmailDirection).optional(),
+  direction: z.enum(EmailDirection).optional(),
   important: z
     .string()
     .transform((val) => (val === "true" ? true : val === "false" ? false : undefined))

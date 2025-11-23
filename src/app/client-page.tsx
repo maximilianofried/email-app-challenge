@@ -20,23 +20,18 @@ export default function ClientPage(props: ClientPageProps) {
   const { emails: initialEmailList } = props;
   const router = useRouter();
 
-  // 1. Init Hooks
   const list = useEmailList(initialEmailList);
   const selection = useEmailSelection();
   const [isComposerOpen, setIsComposerOpen] = useState(false);
 
-  // 2. Derived State (Stats)
   const unreadCount = list.emails.filter(email => !email.isRead).length;
   const importantCount = list.emails.filter(email => email.isImportant).length;
 
-  // Clear selection when filter changes
   useEffect(() => {
     selection.clearSelection();
   }, [list.activeFilter, selection.clearSelection]);
 
-  // 3. Handlers
   const handleEmailClick = async (emailId: number) => {
-    // If already selected, do nothing
     if (selection.selectedEmailId === emailId && selection.selectedEmail) {
       return;
     }
@@ -44,7 +39,6 @@ export default function ClientPage(props: ClientPageProps) {
     const data = await selection.selectEmail(emailId);
 
     if (data) {
-       // Mark entire thread as read if any email in the thread is unread
        const hasUnreadEmails = data.thread?.some((email: Email) => !email.isRead) || !data.email.isRead;
 
        if (hasUnreadEmails) {
@@ -55,10 +49,8 @@ export default function ClientPage(props: ClientPageProps) {
               body: JSON.stringify({ markThreadAsRead: true }),
             });
 
-            // Update List (optimistic)
             list.setEmails(prev => prev.map(e => e.threadId === data.email.threadId ? { ...e, isRead: true } : e));
-            
-            // Update Selection (optimistic)
+
             selection.setThreadEmails(prev => prev.map(e => ({ ...e, isRead: true })));
             selection.setSelectedEmail(prev => prev ? { ...prev, isRead: true } : null);
 
@@ -98,16 +90,13 @@ export default function ClientPage(props: ClientPageProps) {
 
       const emailToDelete = list.emails.find(email => email.id === emailId);
       if (emailToDelete) {
-        // Remove from list
         list.setEmails(prev => prev.filter(e => e.threadId !== emailToDelete.threadId));
 
-        // Clear selection if it was the deleted thread
         if (selection.selectedEmail && selection.selectedEmail.threadId === emailToDelete.threadId) {
           selection.clearSelection();
         }
       }
 
-      // Refresh list to be sure
       list.refreshList();
     } catch (error) {
       console.error('Error deleting thread:', error);
@@ -124,17 +113,12 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to delete email');
       }
 
-      // Remove from list
       list.setEmails(prev => prev.filter(e => e.id !== emailId));
 
-      // Remove from selection thread
       selection.setThreadEmails(prev => prev.filter(e => e.id !== emailId));
 
-      // If the specific selected email was deleted
       if (selection.selectedEmailId === emailId) {
          selection.clearSelection();
-      } else if (selection.selectedEmail) {
-         // Optionally refresh thread data if needed
       }
 
       list.refreshList();
@@ -157,20 +141,16 @@ export default function ClientPage(props: ClientPageProps) {
         throw new Error('Failed to toggle important status');
       }
 
-      // If we're in the important view and unmarking, refresh
       if (list.activeFilter === FilterType.IMPORTANT && !isImportant) {
         list.refreshList();
       } else {
-        // Update list
         list.setEmails(prev => prev.map(e => e.id === emailId ? { ...e, isImportant } : e));
       }
 
-      // Update selection if needed
       if (selection.selectedEmailId === emailId) {
         selection.setSelectedEmail(prev => prev ? { ...prev, isImportant } : null);
       }
 
-      // Update thread in selection
       selection.setThreadEmails(prev => prev.map(e => e.id === emailId ? { ...e, isImportant } : e));
 
     } catch (error) {

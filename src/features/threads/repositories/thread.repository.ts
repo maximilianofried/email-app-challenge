@@ -7,7 +7,7 @@ export class ThreadRepository {
     const subquery = db
       .select({
         threadId: emails.threadId,
-        latestCreatedAt: sql`MAX(${emails.createdAt})`.as('latestCreatedAt'),
+        latestId: sql`MAX(${emails.id})`.as('latestId'),
       })
       .from(emails)
       .where(eq(emails.isDeleted, false))
@@ -21,7 +21,7 @@ export class ThreadRepository {
         subquery,
         and(
           eq(emails.threadId, subquery.threadId),
-          eq(emails.createdAt, subquery.latestCreatedAt),
+          eq(emails.id, subquery.latestId),
           eq(emails.isDeleted, false)
         )
       )
@@ -34,7 +34,7 @@ export class ThreadRepository {
     const subquery = db
       .select({
         threadId: emails.threadId,
-        latestCreatedAt: sql`MAX(${emails.createdAt})`.as('latestCreatedAt'),
+        latestId: sql`MAX(${emails.id})`.as('latestId'),
       })
       .from(emails)
       .where(and(eq(emails.direction, direction), eq(emails.isDeleted, false)))
@@ -48,7 +48,7 @@ export class ThreadRepository {
         subquery,
         and(
           eq(emails.threadId, subquery.threadId),
-          eq(emails.createdAt, subquery.latestCreatedAt),
+          eq(emails.id, subquery.latestId),
           eq(emails.direction, direction),
           eq(emails.isDeleted, false)
         )
