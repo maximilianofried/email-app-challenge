@@ -56,11 +56,11 @@ export default function ClientPage(props: ClientPageProps) {
             });
 
             // Update List (optimistic)
-            list.updateThread(data.email.threadId, { isRead: true });
-
+            list.setEmails(prev => prev.map(e => e.threadId === data.email.threadId ? { ...e, isRead: true } : e));
+            
             // Update Selection (optimistic)
-            selection.updateThreadEmails(prev => prev.map(e => ({ ...e, isRead: true })));
-            selection.updateSelectedEmail({ isRead: true });
+            selection.setThreadEmails(prev => prev.map(e => ({ ...e, isRead: true })));
+            selection.setSelectedEmail(prev => prev ? { ...prev, isRead: true } : null);
 
          } catch (e) {
              console.error("Error marking read", e);
@@ -99,7 +99,7 @@ export default function ClientPage(props: ClientPageProps) {
       const emailToDelete = list.emails.find(email => email.id === emailId);
       if (emailToDelete) {
         // Remove from list
-        list.removeThread(emailToDelete.threadId);
+        list.setEmails(prev => prev.filter(e => e.threadId !== emailToDelete.threadId));
 
         // Clear selection if it was the deleted thread
         if (selection.selectedEmail && selection.selectedEmail.threadId === emailToDelete.threadId) {
@@ -125,10 +125,10 @@ export default function ClientPage(props: ClientPageProps) {
       }
 
       // Remove from list
-      list.removeEmail(emailId);
+      list.setEmails(prev => prev.filter(e => e.id !== emailId));
 
       // Remove from selection thread
-      selection.updateThreadEmails(prev => prev.filter(e => e.id !== emailId));
+      selection.setThreadEmails(prev => prev.filter(e => e.id !== emailId));
 
       // If the specific selected email was deleted
       if (selection.selectedEmailId === emailId) {
@@ -162,16 +162,16 @@ export default function ClientPage(props: ClientPageProps) {
         list.refreshList();
       } else {
         // Update list
-        list.updateEmail(emailId, { isImportant });
+        list.setEmails(prev => prev.map(e => e.id === emailId ? { ...e, isImportant } : e));
       }
 
       // Update selection if needed
       if (selection.selectedEmailId === emailId) {
-        selection.updateSelectedEmail({ isImportant });
+        selection.setSelectedEmail(prev => prev ? { ...prev, isImportant } : null);
       }
 
       // Update thread in selection
-      selection.updateThreadEmails(prev => prev.map(e => e.id === emailId ? { ...e, isImportant } : e));
+      selection.setThreadEmails(prev => prev.map(e => e.id === emailId ? { ...e, isImportant } : e));
 
     } catch (error) {
       console.error('Error toggling important status:', error);

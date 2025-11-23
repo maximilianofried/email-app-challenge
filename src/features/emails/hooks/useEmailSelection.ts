@@ -14,9 +14,6 @@ export function useEmailSelection() {
   }, []);
 
   const selectEmail = useCallback(async (emailId: number) => {
-    // If selecting the same email that is already loaded, do nothing
-    // But if we just have the ID and not the full data, we might want to refetch? 
-    // The original code checked `selectedEmailId === emailId && selectedEmail`
     if (selectedEmailId === emailId && selectedEmail) {
       return null;
     }
@@ -43,18 +40,6 @@ export function useEmailSelection() {
     }
   }, [selectedEmailId, selectedEmail]);
 
-  const updateSelectedEmail = useCallback((updates: Partial<Email> | ((prev: Email | null) => Email | null)) => {
-    if (typeof updates === 'function') {
-      setSelectedEmail(prev => updates(prev));
-    } else {
-      setSelectedEmail(prev => prev ? { ...prev, ...updates } : null);
-    }
-  }, []);
-
-  const updateThreadEmails = useCallback((updater: (emails: Email[]) => Email[]) => {
-      setThreadEmails(updater);
-  }, []);
-
   return {
     selectedEmailId,
     selectedEmail,
@@ -62,8 +47,7 @@ export function useEmailSelection() {
     isLoading,
     selectEmail,
     clearSelection,
-    updateSelectedEmail,
-    updateThreadEmails
+    setSelectedEmail,
+    setThreadEmails
   };
 }
-
