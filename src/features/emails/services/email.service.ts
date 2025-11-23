@@ -1,13 +1,16 @@
 import { randomUUID } from "crypto";
 import { EmailRepository } from "../repositories/email.repository";
+import { ThreadService } from "@/features/threads/services/thread.service";
 import { Email, EmailDirection, EmailData } from "@/lib/schema";
 import { CreateEmailDto, EmailListFiltersDto, EmailWithThreadDto } from "../dtos/emails.dto";
 
 export class EmailService {
   private emailRepository: EmailRepository;
+  private threadService: ThreadService;
 
   constructor() {
     this.emailRepository = new EmailRepository();
+    this.threadService = new ThreadService();
   }
 
   getEmailById = async (id: number): Promise<Email> => {
@@ -56,33 +59,6 @@ export class EmailService {
     return await this.emailRepository.search(query);
   };
 
-  getThreadedEmails = async (direction?: EmailDirection): Promise<Email[]> => {
-    if (direction) {
-      return await this.emailRepository.findLatestByThreadAndDirection(direction);
-    }
-    return await this.emailRepository.findLatestByThread();
-  };
-
-  getEmailsByThreadId = async (threadId: string, includeDeleted: boolean = false, onlyDeleted: boolean = false): Promise<Email[]> => {
-    return await this.emailRepository.findByThreadId(threadId, includeDeleted, onlyDeleted);
-  };
-
-  getThreadEmailsForDeletedEmail = async (threadId: string): Promise<Email[]> => {
-    // Get all emails in the thread (including deleted)
-    const allThreadEmails = await this.emailRepository.findByThreadId(threadId, true, false);
-
-    // Check if all emails in the thread are deleted
-    const allDeleted = allThreadEmails.every(email => email.isDeleted);
-
-    if (allDeleted) {
-      // If entire thread is deleted, show full thread
-      return allThreadEmails;
-    } else {
-      // If only some emails are deleted, show only deleted emails
-      return allThreadEmails.filter(email => email.isDeleted);
-    }
-  };
-
   getEmailsByFilter = async (filter: {
     direction?: EmailDirection;
     isImportant?: boolean;
@@ -108,10 +84,6 @@ export class EmailService {
     return await this.emailRepository.update(id, { isRead: true });
   };
 
-  markThreadAsRead = async (threadId: string): Promise<void> => {
-    await this.emailRepository.markThreadAsRead(threadId);
-  };
-
   toggleImportant = async (id: number, isImportant: boolean): Promise<Email> => {
     const email = await this.emailRepository.findById(id);
 
@@ -132,16 +104,6 @@ export class EmailService {
     await this.emailRepository.delete(id);
   };
 
-  deleteThread = async (threadId: string): Promise<void> => {
-    const threadEmails = await this.emailRepository.findByThreadId(threadId);
-
-    if (threadEmails.length === 0) {
-      throw new Error("Thread not Found");
-    }
-
-    await this.emailRepository.deleteByThreadId(threadId);
-  };
-
   getDeletedEmails = async (): Promise<Email[]> => {
     return await this.emailRepository.findDeleted();
   };
@@ -152,10 +114,10 @@ export class EmailService {
     let threadEmails: Email[];
     if (email.isDeleted) {
       // If viewing a deleted email, check if entire thread is deleted
-      threadEmails = await this.getThreadEmailsForDeletedEmail(email.threadId);
+      threadEmails = await this.threadService.getThreadEmailsForDeletedEmail(email.threadId);
     } else {
       // If viewing a non-deleted email, show only non-deleted emails
-      threadEmails = await this.getEmailsByThreadId(email.threadId, false, false);
+      threadEmails = await this.threadService.getEmailsByThreadId(email.threadId, false, false);
     }
 
     return {
@@ -184,9 +146,9 @@ export class EmailService {
     // Handle threaded view with optional direction filter
     if (filters.threaded) {
       if (filters.direction) {
-        return await this.getThreadedEmails(filters.direction);
+        return await this.threadService.getThreadedEmails(filters.direction);
       }
-      return await this.getThreadedEmails();
+      return await this.threadService.getThreadedEmails();
     }
 
     // Handle direction filter

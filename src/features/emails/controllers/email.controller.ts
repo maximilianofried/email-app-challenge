@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EmailService } from "../services/email.service";
+import { ThreadService } from "@/features/threads/services/thread.service";
 import { CreateEmailDto, EmailListFiltersDto } from "../dtos/emails.dto";
 import { EmailDirection } from "@/lib/schema";
 
 export class EmailController {
   private emailService: EmailService;
+  private threadService: ThreadService;
 
   constructor() {
     this.emailService = new EmailService();
+    this.threadService = new ThreadService();
   }
 
   findById = async (
@@ -144,7 +147,7 @@ export class EmailController {
 
       if (body.markThreadAsRead === true) {
         const email = await this.emailService.getEmailById(emailId);
-        await this.emailService.markThreadAsRead(email.threadId);
+        await this.threadService.markThreadAsRead(email.threadId);
         return NextResponse.json({ success: true }, { status: 200 });
       }
 
@@ -200,7 +203,7 @@ export class EmailController {
 
       if (deleteThread) {
         const email = await this.emailService.getEmailById(emailId);
-        await this.emailService.deleteThread(email.threadId);
+        await this.threadService.deleteThread(email.threadId);
       } else {
         await this.emailService.deleteEmail(emailId);
       }
