@@ -67,15 +67,12 @@ const EmailCard: React.FC<EmailCardProps> = ({
       onClick={onClick}
       sx={{
         borderRadius: 1,
-        // Selected: Strong blue border + selected background
-        // Unread: Greyish background + subtle border
-        // Read: White background + subtle border
         border: isSelected ? '2px solid' : '1px solid',
         borderColor: isSelected ? 'primary.main' : 'divider',
-        backgroundColor: isSelected 
-          ? 'action.selected' 
-          : (!email.isRead && !isInTrash) 
-            ? 'action.hover' 
+        backgroundColor: isSelected
+          ? 'action.selected'
+          : (!email.isRead && !isInTrash)
+            ? 'action.hover'
             : 'background.paper',
         boxShadow: isSelected ? 2 : 0,
         transition: 'all 0.2s ease-in-out',

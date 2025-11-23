@@ -16,6 +16,10 @@ export function useEmailList(initialEmails: Email[]) {
   // Keep track of current search term for pagination
   const currentSearchTerm = useRef<string>('');
 
+  // Store initialEmails in a ref to prevent it from triggering re-fetches
+  // This prevents the circular dependency that causes double loading
+  const initialEmailsRef = useRef<Email[]>(initialEmails);
+
   const getApiUrl = (filter: FilterType, searchTerm?: string, cursor?: number) => {
     let url = `/api/emails?limit=${CONFIG.DEFAULT_LIMIT}`;
 
@@ -67,13 +71,14 @@ export function useEmailList(initialEmails: Email[]) {
       setEmailsFilter(filter);
     } catch (error) {
       console.error('Error fetching emails:', error);
-      setEmails(initialEmails);
+      // Use the ref to avoid adding it as a dependency which would cause double fetches
+      setEmails(initialEmailsRef.current);
       setEmailsFilter(FilterType.INBOX);
     } finally {
       setIsSearching(false);
       setIsLoading(false);
     }
-  }, [initialEmails]);
+  }, []); // Empty deps array prevents unnecessary re-creation and avoids circular dependency
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore || emails.length === 0) return;
@@ -111,7 +116,9 @@ export function useEmailList(initialEmails: Email[]) {
     setHasMore(true);
     currentSearchTerm.current = '';
     fetchEmails(activeFilter);
-  }, [activeFilter, fetchEmails]);
+    // fetchEmails is intentionally excluded from deps to prevent double fetches
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilter]);
 
   const handleSearch = useCallback(async (searchTerm: string) => {
     currentSearchTerm.current = searchTerm;
@@ -120,13 +127,17 @@ export function useEmailList(initialEmails: Email[]) {
       return;
     }
     fetchEmails(activeFilter, searchTerm);
-  }, [activeFilter, fetchEmails]);
+    // fetchEmails is intentionally excluded from deps to prevent double fetches
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilter]);
 
   const refreshList = useCallback(() => {
     // Reset to first page
     setHasMore(true);
     fetchEmails(activeFilter, currentSearchTerm.current);
-  }, [fetchEmails, activeFilter]);
+    // fetchEmails is intentionally excluded from deps to prevent double fetches
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilter]);
 
   return {
     emails,

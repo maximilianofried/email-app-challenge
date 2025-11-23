@@ -130,7 +130,7 @@ export default function EmailListSidebar({
                 />
               ))}
             </Box>
-            {hasMore && onLoadMore && (
+            {hasMore && onLoadMore && emails.length > 0 && (
               <Button
                 onClick={onLoadMore}
                 disabled={isLoadingMore}
