@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EmailService } from "../services/email.service";
 import { ThreadService } from "@/features/threads/services/thread.service";
-import { CreateEmailDto, EmailListFiltersDto } from "../dtos/emails.dto";
-import { EmailDirection } from "@/lib/schema";
+import {
+  createEmailSchema,
+  updateEmailSchema,
+  emailListFiltersSchema,
+  validateInput
+} from "../dtos/emails.dto";
 
 export class EmailController {
   private emailService: EmailService;
@@ -56,21 +60,22 @@ export class EmailController {
   create = async (request: NextRequest): Promise<NextResponse> => {
     try {
       const body = await request.json();
-      const emailData: CreateEmailDto = {
-        subject: body.subject,
-        to: body.to,
-        from: body.from,
-        content: body.content,
-        cc: body.cc,
-        bcc: body.bcc,
-        threadId: body.threadId,
-        direction: body.direction,
-      };
+      const emailData = validateInput(createEmailSchema, body);
 
       const email = await this.emailService.createEmail(emailData);
 
-      return NextResponse.json(email, { status: 200 });
+      return NextResponse.json(email, { status: 201 });
     } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Validation Error")) {
+        return NextResponse.json(
+          {
+            error: error.message,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Keep existing error handling for now as fallback
       if (
         error instanceof Error &&
         (error.message.includes("required") ||
@@ -99,19 +104,29 @@ export class EmailController {
     try {
       const { searchParams } = new URL(request.url);
 
-      // Parse query parameters into filter DTO
-      const filters: EmailListFiltersDto = {
+      const rawFilters = {
         search: searchParams.get("search") || undefined,
-        threaded: searchParams.get("threaded") === "true",
-        direction: (searchParams.get("direction") as EmailDirection) || undefined,
-        important: searchParams.get("important") === "true" ? true : searchParams.get("important") === "false" ? false : undefined,
-        deleted: searchParams.get("deleted") === "true",
+        threaded: searchParams.get("threaded") || undefined, // Zod will transform string to boolean
+        direction: searchParams.get("direction") || undefined,
+        important: searchParams.get("important") || undefined, // Zod will transform string to boolean
+        deleted: searchParams.get("deleted") || undefined, // Zod will transform string to boolean
       };
+
+      const filters = validateInput(emailListFiltersSchema, rawFilters);
 
       const emails = await this.emailService.getEmailsByFilters(filters);
 
       return NextResponse.json(emails, { status: 200 });
     } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Validation Error")) {
+        return NextResponse.json(
+          {
+            error: error.message,
+          },
+          { status: 400 }
+        );
+      }
+
       return NextResponse.json(
         {
           error:
@@ -139,20 +154,24 @@ export class EmailController {
       }
 
       const body = await request.json();
+      const updateData = validateInput(updateEmailSchema, body);
 
-      if (body.isRead !== undefined) {
-        const email = await this.emailService.markAsRead(emailId);
-        return NextResponse.json(email, { status: 200 });
-      }
-
-      if (body.markThreadAsRead === true) {
+      // Prioritize markThreadAsRead
+      if (updateData.markThreadAsRead === true) {
         const email = await this.emailService.getEmailById(emailId);
         await this.threadService.markThreadAsRead(email.threadId);
         return NextResponse.json({ success: true }, { status: 200 });
       }
 
-      if (body.isImportant !== undefined) {
-        const email = await this.emailService.toggleImportant(emailId, body.isImportant);
+      // Handle isRead (supports true and false)
+      if (updateData.isRead !== undefined) {
+        const email = await this.emailService.updateReadStatus(emailId, updateData.isRead);
+        return NextResponse.json(email, { status: 200 });
+      }
+
+      // Handle isImportant
+      if (updateData.isImportant !== undefined) {
+        const email = await this.emailService.toggleImportant(emailId, updateData.isImportant);
         return NextResponse.json(email, { status: 200 });
       }
 
@@ -163,12 +182,21 @@ export class EmailController {
         { status: 400 }
       );
     } catch (error) {
-      if (error instanceof Error && error.message === "Email not Found") {
+      if (error instanceof Error && error.message.startsWith("Validation Error")) {
         return NextResponse.json(
           {
             error: error.message,
           },
-          { status: 404 }
+          { status: 400 }
+        );
+      }
+      
+      if (error instanceof Error && (error.message === "Email not Found" || error.message.includes("Cannot update"))) {
+        return NextResponse.json(
+          {
+            error: error.message,
+          },
+          { status: error.message === "Email not Found" ? 404 : 400 }
         );
       }
 

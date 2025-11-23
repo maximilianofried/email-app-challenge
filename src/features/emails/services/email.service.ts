@@ -13,8 +13,8 @@ export class EmailService {
     this.threadService = new ThreadService();
   }
 
-  getEmailById = async (id: number): Promise<Email> => {
-    const email = await this.emailRepository.findById(id);
+  getEmailById = async (id: number, includeDeleted: boolean = false): Promise<Email> => {
+    const email = await this.emailRepository.findById(id, includeDeleted);
 
     if (!email) {
       throw new Error("Email not Found");
@@ -74,14 +74,18 @@ export class EmailService {
     return await this.emailRepository.findAll();
   };
 
-  markAsRead = async (id: number): Promise<Email> => {
+  updateReadStatus = async (id: number, isRead: boolean): Promise<Email> => {
     const email = await this.emailRepository.findById(id);
 
     if (!email) {
       throw new Error("Email not Found");
     }
 
-    return await this.emailRepository.update(id, { isRead: true });
+    if (email.isDeleted) {
+      throw new Error("Cannot update read status of deleted email");
+    }
+
+    return await this.emailRepository.update(id, { isRead });
   };
 
   toggleImportant = async (id: number, isImportant: boolean): Promise<Email> => {
@@ -89,6 +93,10 @@ export class EmailService {
 
     if (!email) {
       throw new Error("Email not Found");
+    }
+
+    if (email.isDeleted) {
+      throw new Error("Cannot change importance of deleted email");
     }
 
     return await this.emailRepository.update(id, { isImportant });
@@ -101,6 +109,11 @@ export class EmailService {
       throw new Error("Email not Found");
     }
 
+    if (email.isDeleted) {
+      // Already deleted, technically success, but let's be idempotent
+      return;
+    }
+
     await this.emailRepository.delete(id);
   };
 
@@ -109,7 +122,7 @@ export class EmailService {
   };
 
   getEmailWithThread = async (id: number): Promise<EmailWithThreadDto> => {
-    const email = await this.getEmailById(id);
+    const email = await this.getEmailById(id, true);
 
     let threadEmails: Email[];
     if (email.isDeleted) {

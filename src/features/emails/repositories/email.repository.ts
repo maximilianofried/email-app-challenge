@@ -3,11 +3,17 @@ import { emails, Email, EmailData, EmailDirection } from "@/lib/schema";
 import { eq, desc, like, or, and } from "drizzle-orm";
 
 export class EmailRepository {
-  findById = async (id: number): Promise<Email | undefined> => {
+  findById = async (id: number, includeDeleted: boolean = false): Promise<Email | undefined> => {
+    const conditions = [eq(emails.id, id)];
+
+    if (!includeDeleted) {
+      conditions.push(eq(emails.isDeleted, false));
+    }
+
     const result = await db
       .select()
       .from(emails)
-      .where(eq(emails.id, id))
+      .where(and(...conditions))
       .limit(1);
 
     return result[0];
@@ -66,7 +72,7 @@ export class EmailRepository {
     const result = await db
       .update(emails)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(emails.id, id))
+      .where(and(eq(emails.id, id), eq(emails.isDeleted, false)))
       .returning();
 
     return result[0];

@@ -4,6 +4,7 @@ import { Email, EmailData, EmailDirection, emails } from '@/lib/schema';
 import { threads } from '../../../../database/seed';
 import { db } from '@/lib/database';
 import { eq } from 'drizzle-orm';
+import { randomUUID } from 'crypto';
 
 describe('emails API', () => {
   describe('POST /api/emails', () => {
@@ -16,7 +17,7 @@ describe('emails API', () => {
         isRead: false,
         isImportant: false,
         direction: EmailDirection.INCOMING,
-        threadId: 'test-thread-id',
+        threadId: randomUUID(), // Valid UUID
       };
 
       const request = new NextRequest('http://localhost:3000/api/emails', {
@@ -25,7 +26,7 @@ describe('emails API', () => {
       });
 
       const response = await POST(request);
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201); // Expect 201 Created
 
       const returnedEmail = await response.json() as Email;
 

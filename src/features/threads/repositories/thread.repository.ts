@@ -78,14 +78,14 @@ export class ThreadRepository {
     await db
       .update(emails)
       .set({ isRead: true, updatedAt: new Date() })
-      .where(eq(emails.threadId, threadId));
+      .where(and(eq(emails.threadId, threadId), eq(emails.isDeleted, false)));
   };
 
   deleteByThreadId = async (threadId: string): Promise<void> => {
     await db
       .update(emails)
       .set({ isDeleted: true, updatedAt: new Date() })
-      .where(eq(emails.threadId, threadId));
+      .where(and(eq(emails.threadId, threadId), eq(emails.isDeleted, false)));
   };
 }
 

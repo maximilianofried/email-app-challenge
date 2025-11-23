@@ -74,6 +74,10 @@ export default function ClientPage(props: ClientPageProps) {
 
   useEffect(() => {
     fetchEmailsByFilter(activeFilter);
+    // Clear selection when filter changes
+    setSelectedEmailId(null);
+    setSelectedEmail(null);
+    setThreadEmails([]);
   }, [activeFilter, fetchEmailsByFilter]);
 
   const handleSearchChange = useCallback(async (searchTerm: string) => {

@@ -40,10 +40,17 @@ export class ThreadService {
   };
 
   deleteThread = async (threadId: string): Promise<void> => {
-    const threadEmails = await this.threadRepository.findByThreadId(threadId);
+    // Check if there are any non-deleted emails in the thread
+    const threadEmails = await this.threadRepository.findByThreadId(threadId, false, false);
 
     if (threadEmails.length === 0) {
-      throw new Error("Thread not Found");
+      // If no non-deleted emails found, check if thread exists at all (maybe fully deleted)
+      const allEmails = await this.threadRepository.findByThreadId(threadId, true, false);
+      if (allEmails.length === 0) {
+        throw new Error("Thread not Found");
+      }
+      // If thread exists but all emails are already deleted, consider it a success
+      return;
     }
 
     await this.threadRepository.deleteByThreadId(threadId);
