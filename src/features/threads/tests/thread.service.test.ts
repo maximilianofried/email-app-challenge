@@ -1,6 +1,7 @@
 import { ThreadService } from '../services/thread.service';
 import { ThreadRepository } from '../repositories/thread.repository';
 import { Email, EmailDirection } from '@/lib/schema';
+import { CONFIG, ERROR_MESSAGES } from '@/lib/constants';
 
 // Manual mock for ThreadRepository
 const mockThreadRepository = {
@@ -30,7 +31,7 @@ describe('ThreadService', () => {
       const result = await threadService.getThreadedEmailsByDirection(EmailDirection.INCOMING);
 
       expect(result).toEqual(mockEmails);
-      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.INCOMING, 20, undefined);
+      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.INCOMING, CONFIG.DEFAULT_LIMIT, undefined);
     });
 
     it('should support outgoing direction', async () => {
@@ -40,14 +41,14 @@ describe('ThreadService', () => {
       const result = await threadService.getThreadedEmailsByDirection(EmailDirection.OUTGOING);
 
       expect(result).toEqual(mockEmails);
-      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.OUTGOING, 20, undefined);
+      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.OUTGOING, CONFIG.DEFAULT_LIMIT, undefined);
     });
 
     it('should pass pagination parameters with direction', async () => {
       const mockEmails = [{ id: 1, subject: 'Test' }] as Email[];
       mockThreadRepository.findLatestByThreadAndDirection.mockResolvedValue(mockEmails);
 
-      const limit = 10;
+      const limit = CONFIG.DEFAULT_LIMIT;
       const cursor = 100;
       const direction = EmailDirection.INCOMING;
 
@@ -120,7 +121,7 @@ describe('ThreadService', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
 
-      await expect(threadService.deleteThread(threadId)).rejects.toThrow('Thread not found');
+      await expect(threadService.deleteThread(threadId)).rejects.toThrow(ERROR_MESSAGES.THREAD_NOT_FOUND);
     });
   });
 });

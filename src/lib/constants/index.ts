@@ -58,6 +58,6 @@ export const ERROR_MESSAGES = {
 
 
 export const CONFIG = {
-  DEFAULT_LIMIT: 2,
+  DEFAULT_LIMIT: 20,
 } as const;
 
