@@ -20,7 +20,6 @@ export default function RootLayout({
           <FilterProvider>
             <Box sx={{ display: 'flex', minHeight: '100vh' }}>
               <SidebarWrapper />
-              {/* Main Content */}
               <Box sx={{ flex: 1, overflow: 'auto', backgroundColor: 'background.default' }}>
                 {children}
               </Box>

@@ -28,7 +28,6 @@ export default function Sidebar({ activeFilter, onFilterChange, unreadCount = 0,
         borderRightColor: 'divider',
       }}
     >
-      {/* Header */}
       <Box sx={{ p: 3, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
         <Typography
           variant="h5"
@@ -44,7 +43,6 @@ export default function Sidebar({ activeFilter, onFilterChange, unreadCount = 0,
         </Typography>
       </Box>
 
-      {/* Navigation */}
       <Box sx={{ flex: 1, p: 1 }}>
         <MenuList sx={{ p: 0 }}>
           <MenuItem

@@ -139,10 +139,8 @@ export class EmailService {
 
     let threadEmails: Email[];
     if (email.isDeleted) {
-      // If viewing a deleted email, check if entire thread is deleted
       threadEmails = await this.threadService.getThreadEmailsForDeletedEmail(email.threadId);
     } else {
-      // If viewing a non-deleted email, show only non-deleted emails
       threadEmails = await this.threadService.getEmailsByThreadId(email.threadId, false, false);
     }
 

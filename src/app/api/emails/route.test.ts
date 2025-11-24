@@ -17,7 +17,7 @@ describe('emails API', () => {
         isRead: false,
         isImportant: false,
         direction: EmailDirection.INCOMING,
-        threadId: randomUUID(), // Valid UUID
+        threadId: randomUUID(),
       };
 
       const request = new NextRequest('http://localhost:3000/api/emails', {
@@ -26,7 +26,7 @@ describe('emails API', () => {
       });
 
       const response = await POST(request);
-      expect(response.status).toBe(201); // Expect 201 Created
+      expect(response.status).toBe(201);
 
       const returnedEmail = await response.json() as Email;
 
@@ -40,10 +40,10 @@ describe('emails API', () => {
       expect(returnedEmail.direction).toBe(emailData.direction);
       expect(returnedEmail.threadId).toBe(emailData.threadId);
 
-      // Make sure the email was added to the database
+
       const databaseEntry = await db.select().from(emails).where(eq(emails.id, returnedEmail.id));
 
-      // The entries should match
+
       expect(JSON.stringify(returnedEmail)).toEqual(JSON.stringify(databaseEntry[0]));
     });
   });

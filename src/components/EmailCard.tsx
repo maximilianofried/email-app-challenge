@@ -15,21 +15,12 @@ import {
 } from '@mui/icons-material';
 import { Email } from '@/lib/schema';
 
-/**
- * Props for the EmailCard component
- */
 interface EmailCardProps {
-  /** Email object to display */
   email: Email;
-  /** Callback when the card is clicked */
   onClick?: () => void;
-  /** Callback to delete the email, receives email ID */
   onDelete?: (id: number) => void;
-  /** Callback to toggle important status, receives email ID and new status */
   onToggleImportant?: (id: number, isImportant: boolean) => void;
-  /** Whether the email is in the trash folder */
   isInTrash?: boolean;
-  /** Whether this email is currently selected */
   isSelected?: boolean;
 }
 
@@ -84,7 +75,6 @@ const EmailCard: React.FC<EmailCardProps> = ({
       }}
     >
       <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-        {/* Compact Header */}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1 }}>
           <Avatar
             sx={{
@@ -189,7 +179,6 @@ const EmailCard: React.FC<EmailCardProps> = ({
           </Box>
         </Box>
 
-        {/* Compact Content Preview */}
         <Typography
           variant="body2"
           sx={{
@@ -210,7 +199,6 @@ const EmailCard: React.FC<EmailCardProps> = ({
           }
         </Typography>
 
-        {/* Compact Status */}
         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
           {!email.isRead && !isInTrash && (
             <Chip

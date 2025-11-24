@@ -32,7 +32,6 @@ export class EmailController {
    * 6. Default (all emails)
    */
   private resolveEmailQuery(filters: ReturnType<typeof emailListFiltersSchema.parse>) {
-    // Handle search with optional additional filters
     if (filters.search?.trim()) {
       return () => this.emailService.searchEmailsWithFilters(filters.search!.trim(), {
         direction: filters.direction,
@@ -41,7 +40,6 @@ export class EmailController {
       });
     }
 
-    // Threaded view requires direction
     if (filters.threaded) {
       const direction = filters.direction;
       if (!direction) {
@@ -54,7 +52,6 @@ export class EmailController {
       );
     }
 
-    // Single filter queries
     if (filters.direction) {
       return () => this.emailService.getEmailsByDirection(filters.direction!);
     }
@@ -118,7 +115,6 @@ export class EmailController {
 
       const filters = validateInput(emailListFiltersSchema, rawFilters);
 
-      // Resolve which query to execute based on filters
       const queryMethod = this.resolveEmailQuery(filters);
       const emails = await queryMethod();
 
@@ -142,20 +138,17 @@ export class EmailController {
       const body = await request.json();
       const updateData = validateInput(updateEmailSchema, body);
 
-      // Prioritize markThreadAsRead
       if (updateData.markThreadAsRead === true) {
         const email = await this.emailService.getEmailById(emailId);
         await this.threadService.markThreadAsRead(email.threadId);
         return NextResponse.json({ success: true }, { status: 200 });
       }
 
-      // Handle isRead (supports true and false)
       if (updateData.isRead !== undefined) {
         const email = await this.emailService.updateReadStatus(emailId, updateData.isRead);
         return NextResponse.json(email, { status: 200 });
       }
 
-      // Handle isImportant
       if (updateData.isImportant !== undefined) {
         const email = await this.emailService.toggleImportant(emailId, updateData.isImportant);
         return NextResponse.json(email, { status: 200 });

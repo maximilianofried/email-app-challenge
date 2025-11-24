@@ -25,7 +25,6 @@ export default function ClientPage(props: ClientPageProps) {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const { setEmailCounts } = useFilter();
 
-  // Fetch email counts function - can be called after mutations
   const fetchCounts = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.EMAILS + '/counts');
@@ -38,11 +37,10 @@ export default function ClientPage(props: ClientPageProps) {
     }
   };
 
-  // Fetch counts only once on component mount
   useEffect(() => {
     fetchCounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps - only run on mount
+  }, []);
 
   useEffect(() => {
     selection.clearSelection();

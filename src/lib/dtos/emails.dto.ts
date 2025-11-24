@@ -1,8 +1,6 @@
 import { EmailDirection, Email } from '@/lib/schema';
 import { z } from 'zod';
 
-// Zod Schemas
-
 export const createEmailSchema = z.object({
   subject: z.string().min(1, 'Subject is required'),
   to: z.email("Invalid 'to' email address"),

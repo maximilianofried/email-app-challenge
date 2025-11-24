@@ -52,7 +52,6 @@ export default function EmailListSidebar({
       flexDirection: 'column',
       backgroundColor: 'background.paper',
     }}>
-      {/* Header */}
       <Box sx={{ p: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box>
@@ -78,10 +77,8 @@ export default function EmailListSidebar({
         </Box>
       </Box>
 
-      {/* Search Bar - key forces reset when filter changes */}
       <SearchBar key={activeFilter} onSearchChange={onSearch} />
 
-      {/* Email List - Scrollable */}
       <Box sx={{
         flex: 1,
         overflow: 'auto',

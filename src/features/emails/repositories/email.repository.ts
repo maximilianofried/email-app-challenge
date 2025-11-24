@@ -44,7 +44,6 @@ export class EmailRepository {
     const conditions = [
       or(
         like(emails.subject, searchPattern),
-        like(emails.from, searchPattern),
         like(emails.to, searchPattern),
         like(emails.cc, searchPattern),
         like(emails.bcc, searchPattern),

@@ -22,12 +22,10 @@ describe('Home Page Client', () => {
 
   beforeAll(async () => {
     emailList = await db.select().from(emails).orderBy((email) => desc(email.createdAt));
-    // Mock scrollIntoView for JSDOM
     Element.prototype.scrollIntoView = jest.fn();
   });
 
   beforeEach(() => {
-    // Default mock implementation: return full list for list queries, or specific email for details
     global.fetch = jest.fn((url: string) => {
       return Promise.resolve({
         ok: true,
@@ -41,8 +39,6 @@ describe('Home Page Client', () => {
             return emailList;
           }
           if (url.match(/\/api\/emails\/\d+/)) {
-            // Detail view
-            // Extract ID
             const id = parseInt(url.split('/').pop()?.split('?')[0] || '0');
             const email = emailList.find(e => e.id === id);
             const thread = emailList.filter(e => e.threadId === email?.threadId);
@@ -66,7 +62,6 @@ describe('Home Page Client', () => {
     );
     render(ui);
 
-    // Wait for the email list to load first
     await screen.findByTestId('email-list');
 
     expect(screen.getAllByText(threads[0].subject).length).toBeGreaterThan(0);
@@ -83,7 +78,6 @@ describe('Home Page Client', () => {
     );
     render(ui);
 
-    // Wait for the email list to load first
     await screen.findByTestId('email-list');
 
     expect(screen.getAllByText(threads[0].content?.substring(0, 30) + '...').length).toBeGreaterThan(0);
@@ -100,7 +94,6 @@ describe('Home Page Client', () => {
     );
     render(ui);
 
-    // Wait for the email list to load first
     await screen.findByTestId('email-list');
 
     const emailCard = screen.getByTestId(`email-card-${threads[0].id}`);
@@ -124,7 +117,6 @@ describe('Home Page Client', () => {
     );
     render(ui);
 
-    // Wait for the email list to load first
     await screen.findByTestId('email-list');
 
     const searchInput = screen.getByPlaceholderText('Search emails...');
@@ -132,10 +124,8 @@ describe('Home Page Client', () => {
       fireEvent.change(searchInput, { target: { value: searchTerm } });
     });
 
-    // Wait for the search to complete (debounce + fetch)
     await waitFor(() => {
       const displayedEmails = screen.getAllByTestId(/email-card-/);
-      // We expect filtering to happen
       expect(displayedEmails.length).toBeLessThan(emailList.length);
     }, { timeout: 2000 });
 
@@ -149,7 +139,6 @@ describe('Home Page Client', () => {
   test('The search feature is debounced and works as expected', async () => {
     const searchTerm = threads[0].subject;
 
-    // We mock fetch to track calls
     const originalFetch = global.fetch;
     const fetchSpy = jest.fn((url: string, init?: RequestInit) => originalFetch(url, init));
     global.fetch = fetchSpy as typeof fetch;
@@ -163,7 +152,6 @@ describe('Home Page Client', () => {
 
     await screen.findByTestId('email-list');
 
-    // Clear initial fetch call
     fetchSpy.mockClear();
 
     const searchInput = screen.getByPlaceholderText('Search emails...');
@@ -171,19 +159,15 @@ describe('Home Page Client', () => {
       fireEvent.change(searchInput, { target: { value: searchTerm } });
     });
 
-    // Should NOT have called fetch immediately (debounce)
     expect(fetchSpy).not.toHaveBeenCalled();
 
-    // The email list should still be full
     const displayedEmails = screen.getAllByTestId(/email-card-/);
     expect(displayedEmails.length).toBe(emailList.length);
 
-    // Wait for debounce
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalled();
     }, { timeout: 1500 });
 
-    // Now it should be filtered
     await waitFor(() => {
       const displayedEmails = screen.getAllByTestId(/email-card-/);
       expect(displayedEmails.length).toBeLessThan(emailList.length);

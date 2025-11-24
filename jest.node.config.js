@@ -5,7 +5,6 @@ const createJestConfig = nextJest({ dir: './' });
 const config = {
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.node.setup.js'],
-  // Added email service tests to match pattern
   testMatch: [
     '**/api/**/*.test.ts',
     '**/app/api/**/*.test.ts',
