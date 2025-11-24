@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Chip } from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
 import SearchBar from '@/components/SearchBar';
 import EmailCard from '@/components/EmailCard';
@@ -12,10 +12,6 @@ interface EmailListSidebarProps {
   isLoading?: boolean;
   activeFilter: FilterType;
   currentFilter?: FilterType;
-  stats: {
-    unread: number;
-    important: number;
-  };
   selectedEmailId: number | null;
   onSearch: (term: string) => void;
   onCompose: () => void;
@@ -33,7 +29,6 @@ export default function EmailListSidebar({
   isLoading,
   activeFilter,
   currentFilter,
-  stats,
   selectedEmailId,
   onSearch,
   onCompose,
@@ -44,7 +39,7 @@ export default function EmailListSidebar({
   hasMore,
   isLoadingMore,
 }: EmailListSidebarProps) {
-  // Use currentFilter if provided (based on actual data), otherwise fallback to activeFilter
+
   const filterForLogic = currentFilter || activeFilter;
   const isInTrash = filterForLogic === FilterType.TRASH;
 
@@ -60,9 +55,18 @@ export default function EmailListSidebar({
       {/* Header */}
       <Box sx={{ p: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
-            {activeFilter === FilterType.INBOX ? UI_LABELS.INBOX : activeFilter === FilterType.IMPORTANT ? UI_LABELS.IMPORTANT : activeFilter === FilterType.SENT ? UI_LABELS.SENT : UI_LABELS.TRASH}
-          </Typography>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+              {activeFilter === FilterType.INBOX ? UI_LABELS.INBOX : activeFilter === FilterType.IMPORTANT ? UI_LABELS.IMPORTANT : activeFilter === FilterType.SENT ? UI_LABELS.SENT : UI_LABELS.TRASH}
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {emails.length} {
+                activeFilter === FilterType.INBOX
+                  ? (emails.length === 1 ? 'conversation' : 'conversations')
+                  : (emails.length === 1 ? 'message' : 'messages')
+              }
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<EditIcon />}
@@ -72,36 +76,10 @@ export default function EmailListSidebar({
             {UI_LABELS.COMPOSE}
           </Button>
         </Box>
-
-        {/* Stats */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Chip
-            label={`${emails.length} ${UI_LABELS.TOTAL}`}
-            size="small"
-            color="primary"
-            variant="outlined"
-          />
-          {!isInTrash && (
-            <Chip
-              label={`${stats.unread} ${UI_LABELS.UNREAD}`}
-              size="small"
-              color="warning"
-              variant="outlined"
-            />
-          )}
-          {activeFilter !== FilterType.IMPORTANT && !isInTrash && (
-            <Chip
-              label={`${stats.important} ${UI_LABELS.IMPORTANT}`}
-              size="small"
-              color="secondary"
-              variant="outlined"
-            />
-          )}
-        </Box>
       </Box>
 
-      {/* Search Bar */}
-      <SearchBar onSearchChange={onSearch} />
+      {/* Search Bar - key forces reset when filter changes */}
+      <SearchBar key={activeFilter} onSearchChange={onSearch} />
 
       {/* Email List - Scrollable */}
       <Box sx={{

@@ -1,6 +1,6 @@
 import { db } from '@/lib/database';
 import { emails, Email, EmailData, EmailDirection } from '@/lib/schema';
-import { eq, desc, like, or, and } from 'drizzle-orm';
+import { eq, desc, like, or, and, count } from 'drizzle-orm';
 
 export class EmailRepository {
   findById = async (id: number, includeDeleted: boolean = false): Promise<Email | undefined> => {
@@ -91,5 +91,32 @@ export class EmailRepository {
       .from(emails)
       .where(eq(emails.isDeleted, true))
       .orderBy(desc(emails.createdAt));
+  };
+
+  countUnreadInbox = async (): Promise<number> => {
+    const result = await db
+      .select({ count: count() })
+      .from(emails)
+      .where(
+        and(
+          eq(emails.isDeleted, false),
+          eq(emails.direction, EmailDirection.INCOMING),
+          eq(emails.isRead, false),
+        ),
+      );
+    return result[0]?.count || 0;
+  };
+
+  countImportant = async (): Promise<number> => {
+    const result = await db
+      .select({ count: count() })
+      .from(emails)
+      .where(
+        and(
+          eq(emails.isDeleted, false),
+          eq(emails.isImportant, true),
+        ),
+      );
+    return result[0]?.count || 0;
   };
 }

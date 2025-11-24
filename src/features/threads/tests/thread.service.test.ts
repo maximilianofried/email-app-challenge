@@ -4,7 +4,6 @@ import { Email, EmailDirection } from '@/lib/schema';
 
 // Manual mock for ThreadRepository
 const mockThreadRepository = {
-  findLatestByThread: jest.fn(),
   findLatestByThreadAndDirection: jest.fn(),
   findByThreadId: jest.fn(),
   markThreadAsRead: jest.fn(),
@@ -23,37 +22,25 @@ describe('ThreadService', () => {
     );
   });
 
-  describe('getThreadedEmails', () => {
-    it('should return latest emails grouped by thread', async () => {
-      const mockEmails = [{ id: 1, subject: 'Test' }] as Email[];
-      mockThreadRepository.findLatestByThread.mockResolvedValue(mockEmails);
-
-      const result = await threadService.getThreadedEmails();
-
-      expect(result).toEqual(mockEmails);
-      expect(mockThreadRepository.findLatestByThread).toHaveBeenCalled();
-    });
-
-    it('should filter by direction if provided', async () => {
+  describe('getThreadedEmailsByDirection', () => {
+    it('should return latest emails grouped by thread filtered by direction', async () => {
       const mockEmails = [{ id: 1, subject: 'Test' }] as Email[];
       mockThreadRepository.findLatestByThreadAndDirection.mockResolvedValue(mockEmails);
 
-      const result = await threadService.getThreadedEmails(EmailDirection.INCOMING);
+      const result = await threadService.getThreadedEmailsByDirection(EmailDirection.INCOMING);
 
       expect(result).toEqual(mockEmails);
       expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.INCOMING, 20, undefined);
     });
 
-    it('should pass pagination parameters to repository', async () => {
+    it('should support outgoing direction', async () => {
       const mockEmails = [{ id: 1, subject: 'Test' }] as Email[];
-      mockThreadRepository.findLatestByThread.mockResolvedValue(mockEmails);
+      mockThreadRepository.findLatestByThreadAndDirection.mockResolvedValue(mockEmails);
 
-      const limit = 10;
-      const cursor = 100;
+      const result = await threadService.getThreadedEmailsByDirection(EmailDirection.OUTGOING);
 
-      await threadService.getThreadedEmails(undefined, limit, cursor);
-
-      expect(mockThreadRepository.findLatestByThread).toHaveBeenCalledWith(limit, cursor);
+      expect(result).toEqual(mockEmails);
+      expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(EmailDirection.OUTGOING, 20, undefined);
     });
 
     it('should pass pagination parameters with direction', async () => {
@@ -64,7 +51,7 @@ describe('ThreadService', () => {
       const cursor = 100;
       const direction = EmailDirection.INCOMING;
 
-      await threadService.getThreadedEmails(direction, limit, cursor);
+      await threadService.getThreadedEmailsByDirection(direction, limit, cursor);
 
       expect(mockThreadRepository.findLatestByThreadAndDirection).toHaveBeenCalledWith(direction, limit, cursor);
     });
@@ -130,8 +117,8 @@ describe('ThreadService', () => {
       const threadId = 'thread-123';
 
       mockThreadRepository.findByThreadId
-        .mockResolvedValueOnce([]) // active
-        .mockResolvedValueOnce([]); // all (empty means not found)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
 
       await expect(threadService.deleteThread(threadId)).rejects.toThrow('Thread not found');
     });

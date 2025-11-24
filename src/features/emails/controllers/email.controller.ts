@@ -45,8 +45,12 @@ export class EmailController {
     }
 
     if (filters.threaded) {
-      return () => this.emailService.getThreadedEmails(
-        filters.direction,
+      const direction = filters.direction;
+      if (!direction) {
+        throw new BadRequestError('Direction is required when using threaded view');
+      }
+      return () => this.emailService.getThreadedEmailsByDirection(
+        direction,
         filters.limit,
         filters.cursor,
       );
@@ -178,6 +182,15 @@ export class EmailController {
       }
 
       return NextResponse.json({ success: true }, { status: 200 });
+    } catch (error) {
+      return handleApiError(error);
+    }
+  };
+
+  getCounts = async (): Promise<NextResponse> => {
+    try {
+      const counts = await this.emailService.getEmailCounts();
+      return NextResponse.json(counts, { status: 200 });
     } catch (error) {
       return handleApiError(error);
     }

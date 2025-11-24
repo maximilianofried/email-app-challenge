@@ -11,9 +11,11 @@ import { UI_LABELS } from '@/lib/constants';
 interface SidebarProps {
   activeFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
+  unreadCount?: number;
+  importantCount?: number;
 }
 
-export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) {
+export default function Sidebar({ activeFilter, onFilterChange, unreadCount = 0, importantCount = 0 }: SidebarProps) {
   return (
     <Paper
       elevation={1}
@@ -57,7 +59,16 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
               <InboxIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary={UI_LABELS.INBOX}
+              primary={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {UI_LABELS.INBOX}
+                  {unreadCount > 0 && (
+                    <Typography component="span" sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+                      ({unreadCount})
+                    </Typography>
+                  )}
+                </Box>
+              }
               primaryTypographyProps={{ fontWeight: 500 }}
             />
           </MenuItem>
@@ -74,7 +85,16 @@ export default function Sidebar({ activeFilter, onFilterChange }: SidebarProps) 
               <StarIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary={UI_LABELS.IMPORTANT}
+              primary={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {UI_LABELS.IMPORTANT}
+                  {importantCount > 0 && (
+                    <Typography component="span" sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+                      {importantCount}
+                    </Typography>
+                  )}
+                </Box>
+              }
               primaryTypographyProps={{ fontWeight: 500 }}
             />
           </MenuItem>

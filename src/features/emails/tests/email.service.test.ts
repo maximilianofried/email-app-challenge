@@ -20,7 +20,7 @@ const mockEmailRepository = {
 const mockThreadService = {
   getThreadEmailsForDeletedEmail: jest.fn(),
   getEmailsByThreadId: jest.fn(),
-  getThreadedEmails: jest.fn(),
+  getThreadedEmailsByDirection: jest.fn(),
 };
 
 describe('EmailService', () => {

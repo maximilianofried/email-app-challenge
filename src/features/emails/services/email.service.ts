@@ -56,50 +56,35 @@ export class EmailService {
     return await this.emailRepository.create(emailData);
   };
 
-  /**
-   * Get all non-deleted emails
-   */
   getAllEmails = async (): Promise<Email[]> => {
     return await this.emailRepository.findAll();
   };
 
-  /**
-   * Get deleted emails only (Trash folder)
-   */
   getDeletedEmails = async (): Promise<Email[]> => {
     return await this.emailRepository.findDeleted();
   };
 
-  /**
-   * Search emails by text query
-   */
   searchEmails = async (query: string): Promise<Email[]> => {
     return await this.emailRepository.search(query);
   };
 
-  /**
-   * Get emails filtered by direction (incoming/outgoing)
-   */
   getEmailsByDirection = async (direction: EmailDirection): Promise<Email[]> => {
     return await this.emailRepository.findByDirection(direction);
   };
 
-  /**
-   * Get important emails only
-   */
   getImportantEmails = async (): Promise<Email[]> => {
     return this.emailRepository.findImportant();
   };
 
   /**
-   * Get threaded emails (latest per thread)
+   * Get threaded emails (latest per thread) filtered by direction
    */
-  getThreadedEmails = async (
-    direction?: EmailDirection,
+  getThreadedEmailsByDirection = async (
+    direction: EmailDirection,
     limit?: number,
     cursor?: number,
   ): Promise<Email[]> => {
-    return await this.threadService.getThreadedEmails(direction, limit, cursor);
+    return await this.threadService.getThreadedEmailsByDirection(direction, limit, cursor);
   };
 
   updateReadStatus = async (id: number, isRead: boolean): Promise<Email> => {
@@ -138,7 +123,6 @@ export class EmailService {
     }
 
     if (email.isDeleted) {
-      // Already deleted, technically success, but let's be idempotent
       return;
     }
 
@@ -161,5 +145,14 @@ export class EmailService {
       email,
       thread: threadEmails,
     };
+  };
+
+  getEmailCounts = async (): Promise<{ unread: number; important: number }> => {
+    const [unread, important] = await Promise.all([
+      this.emailRepository.countUnreadInbox(),
+      this.emailRepository.countImportant(),
+    ]);
+
+    return { unread, important };
   };
 }

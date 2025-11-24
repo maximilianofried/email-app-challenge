@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Box } from '@mui/material';
 import EmailComposer from '@/components/EmailComposer';
 import { Email } from '@/lib/schema';
@@ -12,6 +11,7 @@ import EmailListSidebar from '@/components/EmailListSidebar';
 import EmailDetailPanel from '@/components/EmailDetailPanel';
 import { FilterType } from '@/lib/types/email.types';
 import { API_ENDPOINTS, API_HEADERS, ERROR_MESSAGES, HTTP_METHODS } from '@/lib/constants';
+import { useFilter } from '@/contexts/FilterContext';
 
 interface ClientPageProps {
   emails: Email[];
@@ -19,14 +19,27 @@ interface ClientPageProps {
 
 export default function ClientPage(props: ClientPageProps) {
   const { emails: initialEmailList } = props;
-  const router = useRouter();
 
   const list = useEmailList(initialEmailList);
   const selection = useEmailSelection();
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const { setEmailCounts } = useFilter();
 
-  const unreadCount = list.emails.filter(email => !email.isRead).length;
-  const importantCount = list.emails.filter(email => email.isImportant).length;
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.EMAILS + '/counts');
+        if (response.ok) {
+          const counts = await response.json();
+          setEmailCounts(counts);
+        }
+      } catch (error) {
+        console.error('Error fetching email counts:', error);
+      }
+    };
+
+    fetchCounts();
+  }, [setEmailCounts, list.emails]); // Refetch when emails change
 
   useEffect(() => {
     selection.clearSelection();
@@ -75,7 +88,7 @@ export default function ClientPage(props: ClientPageProps) {
       throw new Error(errorData.error || ERROR_MESSAGES.SEND_EMAIL_FAILED);
     }
 
-    router.refresh();
+    list.refreshList();
   };
 
   const handleDeleteThread = async (emailId: number) => {
@@ -164,7 +177,6 @@ export default function ClientPage(props: ClientPageProps) {
         isLoading={list.isLoading}
         activeFilter={list.activeFilter}
         currentFilter={list.emailsFilter}
-        stats={{ unread: unreadCount, important: importantCount }}
         selectedEmailId={selection.selectedEmailId}
         onSearch={list.handleSearch}
         onSelect={handleEmailClick}
