@@ -1,7 +1,8 @@
 import { EmailController } from '@/features/emails/controllers/email.controller';
 
+const emailController = new EmailController();
+
 export async function GET(): Promise<Response> {
-  const emailController = new EmailController();
   return await emailController.getCounts();
 }
 

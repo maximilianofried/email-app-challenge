@@ -25,21 +25,24 @@ export default function ClientPage(props: ClientPageProps) {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const { setEmailCounts } = useFilter();
 
-  useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const response = await fetch(API_ENDPOINTS.EMAILS + '/counts');
-        if (response.ok) {
-          const counts = await response.json();
-          setEmailCounts(counts);
-        }
-      } catch (error) {
-        console.error('Error fetching email counts:', error);
+  // Fetch email counts function - can be called after mutations
+  const fetchCounts = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.EMAILS + '/counts');
+      if (response.ok) {
+        const counts = await response.json();
+        setEmailCounts(counts);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching email counts:', error);
+    }
+  };
 
+  // Fetch counts only once on component mount
+  useEffect(() => {
     fetchCounts();
-  }, [setEmailCounts, list.emails]); // Refetch when emails change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run on mount
 
   useEffect(() => {
     selection.clearSelection();
@@ -69,6 +72,7 @@ export default function ClientPage(props: ClientPageProps) {
           selection.setThreadEmails(prev => prev.map(e => ({ ...e, isRead: true })));
           selection.setSelectedEmail(prev => prev ? { ...prev, isRead: true } : null);
 
+          fetchCounts(); // Update counts after marking as read
         } catch (e) {
           console.error('Error marking read', e);
         }
@@ -89,6 +93,7 @@ export default function ClientPage(props: ClientPageProps) {
     }
 
     list.refreshList();
+    fetchCounts();
   };
 
   const handleDeleteThread = async (emailId: number) => {
@@ -111,6 +116,7 @@ export default function ClientPage(props: ClientPageProps) {
       }
 
       list.refreshList();
+      fetchCounts();
     } catch (error) {
       console.error('Error deleting thread:', error);
     }
@@ -135,6 +141,7 @@ export default function ClientPage(props: ClientPageProps) {
       }
 
       list.refreshList();
+      fetchCounts();
     } catch (error) {
       console.error('Error deleting email:', error);
     }
@@ -164,6 +171,7 @@ export default function ClientPage(props: ClientPageProps) {
 
       selection.setThreadEmails(prev => prev.map(e => e.id === emailId ? { ...e, isImportant } : e));
 
+      fetchCounts(); // Update counts after toggling important status
     } catch (error) {
       console.error('Error toggling important status:', error);
     }
