@@ -20,18 +20,20 @@ export function useEmailList(initialEmails: Email[]) {
   const getApiUrl = (filter: FilterType, searchTerm?: string, cursor?: number) => {
     let url = `/api/emails?limit=${CONFIG.DEFAULT_LIMIT}`;
 
+    // Add search parameter if provided
     if (searchTerm && searchTerm.trim()) {
       url += `&search=${encodeURIComponent(searchTerm.trim())}`;
-    } else {
-      if (filter === FilterType.INBOX) {
-        url += '&threaded=true&direction=incoming';
-      } else if (filter === FilterType.IMPORTANT) {
-        url += '&important=true';
-      } else if (filter === FilterType.SENT) {
-        url += '&direction=outgoing';
-      } else if (filter === FilterType.TRASH) {
-        url += '&deleted=true';
-      }
+    }
+
+    // Always apply filter parameters (even when searching)
+    if (filter === FilterType.INBOX) {
+      url += '&threaded=true&direction=incoming';
+    } else if (filter === FilterType.IMPORTANT) {
+      url += '&important=true';
+    } else if (filter === FilterType.SENT) {
+      url += '&direction=outgoing';
+    } else if (filter === FilterType.TRASH) {
+      url += '&deleted=true';
     }
 
     if (cursor) {

@@ -12,8 +12,9 @@ next-env.d.ts
 # JUnit test reports
 junit-reports/
 
-# SQLite database (production)
+# SQLite databases
 sqlite.db
+sqlite.test.db
 
 # Testing
 coverage/

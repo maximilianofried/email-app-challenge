@@ -9,7 +9,7 @@ const mockEmailRepository = {
   findById: jest.fn(),
   create: jest.fn(),
   findAll: jest.fn(),
-  search: jest.fn(),
+  searchWithFilters: jest.fn(),
   findByDirection: jest.fn(),
   findImportant: jest.fn(),
   update: jest.fn(),
@@ -104,6 +104,64 @@ describe('EmailService', () => {
       mockEmailRepository.findById.mockResolvedValue(mockEmail);
 
       await expect(emailService.updateReadStatus(1, true)).rejects.toThrow(BadRequestError);
+    });
+  });
+
+  describe('searchEmailsWithFilters', () => {
+    const mockEmails: Email[] = [
+      { id: 1, subject: 'Project Update', direction: EmailDirection.INCOMING } as Email,
+      { id: 2, subject: 'Meeting Notes', direction: EmailDirection.OUTGOING } as Email,
+    ];
+
+    it('should search without filters', async () => {
+      mockEmailRepository.searchWithFilters.mockResolvedValue(mockEmails);
+
+      const result = await emailService.searchEmailsWithFilters('test');
+
+      expect(result).toEqual(mockEmails);
+      expect(mockEmailRepository.searchWithFilters).toHaveBeenCalledWith('test', undefined);
+    });
+
+    it('should search with direction filter (incoming only)', async () => {
+      const incomingOnly = [mockEmails[0]];
+      mockEmailRepository.searchWithFilters.mockResolvedValue(incomingOnly);
+
+      const result = await emailService.searchEmailsWithFilters('project', {
+        direction: EmailDirection.INCOMING,
+      });
+
+      expect(result).toEqual(incomingOnly);
+      expect(mockEmailRepository.searchWithFilters).toHaveBeenCalledWith('project', {
+        direction: EmailDirection.INCOMING,
+      });
+    });
+
+    it('should search with important filter', async () => {
+      mockEmailRepository.searchWithFilters.mockResolvedValue([mockEmails[0]]);
+
+      const result = await emailService.searchEmailsWithFilters('urgent', {
+        important: true,
+      });
+
+      expect(mockEmailRepository.searchWithFilters).toHaveBeenCalledWith('urgent', {
+        important: true,
+      });
+    });
+
+    it('should search with multiple filters', async () => {
+      mockEmailRepository.searchWithFilters.mockResolvedValue([mockEmails[0]]);
+
+      const result = await emailService.searchEmailsWithFilters('test', {
+        direction: EmailDirection.INCOMING,
+        important: true,
+        deleted: false,
+      });
+
+      expect(mockEmailRepository.searchWithFilters).toHaveBeenCalledWith('test', {
+        direction: EmailDirection.INCOMING,
+        important: true,
+        deleted: false,
+      });
     });
   });
 });

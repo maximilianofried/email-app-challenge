@@ -64,8 +64,15 @@ export class EmailService {
     return await this.emailRepository.findDeleted();
   };
 
-  searchEmails = async (query: string): Promise<Email[]> => {
-    return await this.emailRepository.search(query);
+  searchEmailsWithFilters = async (
+    query: string,
+    options?: {
+      direction?: EmailDirection;
+      important?: boolean;
+      deleted?: boolean;
+    }
+  ): Promise<Email[]> => {
+    return await this.emailRepository.searchWithFilters(query, options);
   };
 
   getEmailsByDirection = async (direction: EmailDirection): Promise<Email[]> => {
@@ -76,9 +83,7 @@ export class EmailService {
     return this.emailRepository.findImportant();
   };
 
-  /**
-   * Get threaded emails (latest per thread) filtered by direction
-   */
+
   getThreadedEmailsByDirection = async (
     direction: EmailDirection,
     limit?: number,

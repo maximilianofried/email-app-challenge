@@ -24,26 +24,24 @@ export class EmailController {
    * This centralizes the routing logic and makes it testable.
    *
    * Filter priority:
-   * 1. Deleted (Trash folder)
-   * 2. Search (text query across all fields)
-   * 3. Important (starred/flagged emails)
-   * 4. Threaded (grouped by conversation)
-   * 5. Direction (incoming/outgoing)
+   * 1. Search (with optional direction/important/deleted filters)
+   * 2. Threaded (grouped by conversation, requires direction)
+   * 3. Direction (incoming/outgoing)
+   * 4. Important (starred/flagged emails)
+   * 5. Deleted (Trash folder)
    * 6. Default (all emails)
    */
   private resolveEmailQuery(filters: ReturnType<typeof emailListFiltersSchema.parse>) {
-    if (filters.deleted) {
-      return () => this.emailService.getDeletedEmails();
-    }
-
+    // Handle search with optional additional filters
     if (filters.search?.trim()) {
-      return () => this.emailService.searchEmails(filters.search!.trim());
+      return () => this.emailService.searchEmailsWithFilters(filters.search!.trim(), {
+        direction: filters.direction,
+        important: filters.important,
+        deleted: filters.deleted,
+      });
     }
 
-    if (filters.important) {
-      return () => this.emailService.getImportantEmails();
-    }
-
+    // Threaded view requires direction
     if (filters.threaded) {
       const direction = filters.direction;
       if (!direction) {
@@ -56,8 +54,17 @@ export class EmailController {
       );
     }
 
+    // Single filter queries
     if (filters.direction) {
       return () => this.emailService.getEmailsByDirection(filters.direction!);
+    }
+
+    if (filters.important) {
+      return () => this.emailService.getImportantEmails();
+    }
+
+    if (filters.deleted) {
+      return () => this.emailService.getDeletedEmails();
     }
 
     return () => this.emailService.getAllEmails();

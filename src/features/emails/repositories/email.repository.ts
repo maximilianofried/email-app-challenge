@@ -32,23 +32,46 @@ export class EmailRepository {
       .orderBy(desc(emails.createdAt));
   };
 
-  search = async (query: string): Promise<Email[]> => {
+  searchWithFilters = async (
+    query: string,
+    options?: {
+      direction?: EmailDirection;
+      important?: boolean;
+      deleted?: boolean;
+    }
+  ): Promise<Email[]> => {
     const searchPattern = `%${query}%`;
+    const conditions = [
+      or(
+        like(emails.subject, searchPattern),
+        like(emails.from, searchPattern),
+        like(emails.to, searchPattern),
+        like(emails.cc, searchPattern),
+        like(emails.bcc, searchPattern),
+        like(emails.content, searchPattern),
+      ),
+    ];
+
+    // Apply filters based on options
+    if (options?.deleted !== undefined) {
+      conditions.push(eq(emails.isDeleted, options.deleted));
+    } else {
+      // Default: exclude deleted emails
+      conditions.push(eq(emails.isDeleted, false));
+    }
+
+    if (options?.direction) {
+      conditions.push(eq(emails.direction, options.direction));
+    }
+
+    if (options?.important !== undefined) {
+      conditions.push(eq(emails.isImportant, options.important));
+    }
+
     return await db
       .select()
       .from(emails)
-      .where(
-        and(
-          eq(emails.isDeleted, false),
-          or(
-            like(emails.subject, searchPattern),
-            like(emails.to, searchPattern),
-            like(emails.cc, searchPattern),
-            like(emails.bcc, searchPattern),
-            like(emails.content, searchPattern),
-          ),
-        ),
-      )
+      .where(and(...conditions))
       .orderBy(desc(emails.createdAt));
   };
 
