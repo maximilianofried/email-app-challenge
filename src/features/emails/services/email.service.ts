@@ -60,8 +60,8 @@ export class EmailService {
     return await this.emailRepository.findAll();
   };
 
-  getDeletedEmails = async (): Promise<Email[]> => {
-    return await this.emailRepository.findDeleted();
+  getDeletedEmails = async (limit?: number, cursor?: number): Promise<Email[]> => {
+    return await this.emailRepository.findDeleted(limit, cursor);
   };
 
   searchEmailsWithFilters = async (
@@ -70,17 +70,19 @@ export class EmailService {
       direction?: EmailDirection;
       important?: boolean;
       deleted?: boolean;
-    }
+      limit?: number;
+      cursor?: number;
+    },
   ): Promise<Email[]> => {
     return await this.emailRepository.searchWithFilters(query, options);
   };
 
-  getEmailsByDirection = async (direction: EmailDirection): Promise<Email[]> => {
-    return await this.emailRepository.findByDirection(direction);
+  getEmailsByDirection = async (direction: EmailDirection, limit?: number, cursor?: number): Promise<Email[]> => {
+    return await this.emailRepository.findByDirection(direction, limit, cursor);
   };
 
-  getImportantEmails = async (): Promise<Email[]> => {
-    return this.emailRepository.findImportant();
+  getImportantEmails = async (limit?: number, cursor?: number): Promise<Email[]> => {
+    return this.emailRepository.findImportant(limit, cursor);
   };
 
 

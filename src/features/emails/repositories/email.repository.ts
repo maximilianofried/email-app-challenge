@@ -1,6 +1,7 @@
 import { db } from '@/lib/database';
 import { emails, Email, EmailData, EmailDirection } from '@/lib/schema';
-import { eq, desc, like, or, and, count } from 'drizzle-orm';
+import { eq, desc, like, or, and, count, lt } from 'drizzle-orm';
+import { CONFIG } from '@/lib/constants';
 
 export class EmailRepository {
   findById = async (id: number, includeDeleted: boolean = false): Promise<Email | undefined> => {
@@ -38,7 +39,9 @@ export class EmailRepository {
       direction?: EmailDirection;
       important?: boolean;
       deleted?: boolean;
-    }
+      limit?: number;
+      cursor?: number;
+    },
   ): Promise<Email[]> => {
     const searchPattern = `%${query}%`;
     const conditions = [
@@ -67,27 +70,53 @@ export class EmailRepository {
       conditions.push(eq(emails.isImportant, options.important));
     }
 
+    // Add cursor-based pagination
+    if (options?.cursor) {
+      conditions.push(lt(emails.id, options.cursor));
+    }
+
     return await db
       .select()
       .from(emails)
       .where(and(...conditions))
-      .orderBy(desc(emails.createdAt));
+      .orderBy(desc(emails.id))
+      .limit(options?.limit || CONFIG.DEFAULT_LIMIT);
   };
 
-  findByDirection = async (direction: EmailDirection): Promise<Email[]> => {
+  findByDirection = async (direction: EmailDirection, limit: number = CONFIG.DEFAULT_LIMIT, cursor?: number): Promise<Email[]> => {
+    const conditions = [
+      eq(emails.direction, direction),
+      eq(emails.isDeleted, false),
+    ];
+
+    if (cursor) {
+      conditions.push(lt(emails.id, cursor));
+    }
+
     return await db
       .select()
       .from(emails)
-      .where(and(eq(emails.direction, direction), eq(emails.isDeleted, false)))
-      .orderBy(desc(emails.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(emails.id))
+      .limit(limit);
   };
 
-  findImportant = async (): Promise<Email[]> => {
+  findImportant = async (limit: number = CONFIG.DEFAULT_LIMIT, cursor?: number): Promise<Email[]> => {
+    const conditions = [
+      eq(emails.isImportant, true),
+      eq(emails.isDeleted, false),
+    ];
+
+    if (cursor) {
+      conditions.push(lt(emails.id, cursor));
+    }
+
     return await db
       .select()
       .from(emails)
-      .where(and(eq(emails.isImportant, true), eq(emails.isDeleted, false)))
-      .orderBy(desc(emails.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(emails.id))
+      .limit(limit);
   };
 
   update = async (id: number, data: Partial<EmailData>): Promise<Email> => {
@@ -107,12 +136,19 @@ export class EmailRepository {
       .where(eq(emails.id, id));
   };
 
-  findDeleted = async (): Promise<Email[]> => {
+  findDeleted = async (limit: number = CONFIG.DEFAULT_LIMIT, cursor?: number): Promise<Email[]> => {
+    const conditions = [eq(emails.isDeleted, true)];
+
+    if (cursor) {
+      conditions.push(lt(emails.id, cursor));
+    }
+
     return await db
       .select()
       .from(emails)
-      .where(eq(emails.isDeleted, true))
-      .orderBy(desc(emails.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(emails.id))
+      .limit(limit);
   };
 
   countUnreadInbox = async (): Promise<number> => {

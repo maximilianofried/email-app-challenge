@@ -139,7 +139,7 @@ describe('EmailService', () => {
     it('should search with important filter', async () => {
       mockEmailRepository.searchWithFilters.mockResolvedValue([mockEmails[0]]);
 
-      const result = await emailService.searchEmailsWithFilters('urgent', {
+      await emailService.searchEmailsWithFilters('urgent', {
         important: true,
       });
 
@@ -151,7 +151,7 @@ describe('EmailService', () => {
     it('should search with multiple filters', async () => {
       mockEmailRepository.searchWithFilters.mockResolvedValue([mockEmails[0]]);
 
-      const result = await emailService.searchEmailsWithFilters('test', {
+      await emailService.searchEmailsWithFilters('test', {
         direction: EmailDirection.INCOMING,
         important: true,
         deleted: false,

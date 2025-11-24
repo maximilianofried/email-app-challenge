@@ -37,6 +37,8 @@ export class EmailController {
         direction: filters.direction,
         important: filters.important,
         deleted: filters.deleted,
+        limit: filters.limit,
+        cursor: filters.cursor,
       });
     }
 
@@ -53,15 +55,25 @@ export class EmailController {
     }
 
     if (filters.direction) {
-      return () => this.emailService.getEmailsByDirection(filters.direction!);
+      return () => this.emailService.getEmailsByDirection(
+        filters.direction!,
+        filters.limit,
+        filters.cursor,
+      );
     }
 
     if (filters.important) {
-      return () => this.emailService.getImportantEmails();
+      return () => this.emailService.getImportantEmails(
+        filters.limit,
+        filters.cursor,
+      );
     }
 
     if (filters.deleted) {
-      return () => this.emailService.getDeletedEmails();
+      return () => this.emailService.getDeletedEmails(
+        filters.limit,
+        filters.cursor,
+      );
     }
 
     return () => this.emailService.getAllEmails();
