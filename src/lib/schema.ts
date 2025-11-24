@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
 export enum EmailDirection {
   INCOMING = 'incoming',
@@ -31,7 +31,27 @@ export const emails = sqliteTable('emails', {
   updatedAt: integer('updated_at', { mode: 'timestamp' })
     .$defaultFn(() => new Date())
     .notNull(),
-});
+}, (table) => ({
+  // Single column indexes for frequently queried fields
+  threadIdIdx: index('thread_id_idx').on(table.threadId),
+  isDeletedIdx: index('is_deleted_idx').on(table.isDeleted),
+  directionIdx: index('direction_idx').on(table.direction),
+  isImportantIdx: index('is_important_idx').on(table.isImportant),
+  createdAtIdx: index('created_at_idx').on(table.createdAt),
+
+  // Composite indexes for common query patterns
+  // Used in: getLatestByThreadAndDirection, getEmailsByDirection
+  directionDeletedIdx: index('direction_deleted_idx').on(table.direction, table.isDeleted),
+
+  // Used in: getEmailsByThreadId
+  threadDeletedIdx: index('thread_deleted_idx').on(table.threadId, table.isDeleted),
+
+  // Used in: getImportantEmails
+  importantDeletedIdx: index('important_deleted_idx').on(table.isImportant, table.isDeleted),
+
+  // Used in: countUnreadInbox (direction + isDeleted + isRead)
+  inboxUnreadIdx: index('inbox_unread_idx').on(table.direction, table.isDeleted, table.isRead),
+}));
 
 export type Email = typeof emails.$inferSelect;
 export type EmailData = typeof emails.$inferInsert;
